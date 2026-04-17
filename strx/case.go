@@ -1,3 +1,4 @@
+// https://github.com/Ma124/strcase
 /*
  * The MIT License (MIT)
  *
