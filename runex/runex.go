@@ -45,3 +45,53 @@ func IsOctal(r rune) bool { return r >= '0' && r <= '7' }
 
 // Check if a rune is a binary digit (0 or 1)
 func IsBinary(r rune) bool { return r == '0' || r == '1' }
+
+// Check if a rune is a lowercase letter (a-z)
+func IsLower(r rune) bool { return r >= 'a' && r <= 'z' }
+
+// Check if a rune is an uppercase letter (A-Z)
+func IsUpper(r rune) bool { return r >= 'A' && r <= 'Z' }
+
+// Check if a rune is a punctuation mark
+func IsPunctuation(r rune) bool {
+	return IsOneOf(r, '.', ',', '!', '?', ';', ':', '"', '\'', '-', '(', ')', '[', ']', '{', '}')
+}
+
+// Check if a rune is a symbol or operator
+func IsSymbol(r rune) bool {
+	return IsOneOf(r, '+', '-', '*', '/', '=', '<', '>', '&', '|', '^', '~', '!', '@', '#', '$', '%')
+}
+
+// Check if a rune is a tab character
+func IsTab(r rune) bool { return r == '\t' }
+
+// Check if a rune is an ASCII character (0-127)
+func IsAscii(r rune) bool { return r >= 0 && r <= 127 }
+
+// Check if a rune is printable ASCII
+func IsPrintableAscii(r rune) bool { return r >= 32 && r <= 126 }
+
+// Check if a rune is a vowel (a, e, i, o, u - case insensitive)
+func IsVowel(r rune) bool { return IsOneOf(r, 'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U') }
+
+// Check if a rune is a consonant (letter but not vowel)
+func IsConsonant(r rune) bool { return IsLetter(r) && !IsVowel(r) }
+
+// Check if a rune is a quote character (single or double)
+func IsQuote(r rune) bool { return r == '"' || r == '\'' || r == '`' }
+
+// Convert a rune to lowercase if it's uppercase
+func ToLower(r rune) rune {
+	if IsUpper(r) {
+		return r + ('a' - 'A')
+	}
+	return r
+}
+
+// Convert a rune to uppercase if it's lowercase
+func ToUpper(r rune) rune {
+	if IsLower(r) {
+		return r - ('a' - 'A')
+	}
+	return r
+}
