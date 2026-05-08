@@ -4,22 +4,23 @@
 package strx
 
 import (
+	"fmt"
 	"iter"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
-// Ident returns a string with the specified number of spaces
+// Indent returns a string with the specified number of spaces
 // inserted before the string.
-func Ident(s string, pad int) string {
-	ident := strings.Repeat(" ", pad)
-	return ident + strings.ReplaceAll(s, "\n", "\n"+ident)
+func Indent(s string, pad int) string {
+	return IndentWith(s, pad, " ")
 }
 
-// IdentWith returns a string with the specified number of characters
+// IndentWith returns a string with the specified number of characters
 // inserted before the string. The character used for padding is
 // specified by the second parameter.
-func IdentWith(s string, pad int, with string) string {
+func IndentWith(s string, pad int, with string) string {
 	ident := strings.Repeat(with, pad)
 	return ident + strings.ReplaceAll(s, "\n", "\n"+ident)
 }
@@ -144,7 +145,7 @@ func PadCenterWith(s string, n int, with string) string {
 	}
 	left := n / 2
 	right := left
-	if left%2 == 1 {
+	if n%2 == 1 {
 		left++
 	}
 	return strings.Repeat(with, left) + s + strings.Repeat(with, right)
@@ -156,7 +157,8 @@ func FirstUp(s string) string {
 	if len(s) == 0 {
 		return s
 	}
-	return strings.ToUpper(string(s[0])) + s[1:]
+	r, size := utf8.DecodeRuneInString(s)
+	return ToUpper(string(r)) + s[size:]
 }
 
 // FirstLow lowercases the first letter of the string and returns the modified
@@ -165,7 +167,8 @@ func FirstLow(s string) string {
 	if len(s) == 0 {
 		return s
 	}
-	return strings.ToLower(string(s[0])) + s[1:]
+	r, size := utf8.DecodeRuneInString(s)
+	return ToLower(string(r)) + s[size:]
 }
 
 // TrimSpaces removes all spaces from the start and end of the string.
@@ -184,17 +187,21 @@ func IsBlank(s string) bool {
 	return true
 }
 
-// Eliipsis truncates the string to the specified maximum length and appends
-// "..." if the string was longer than the maximum length. If the string is
-// shorter than or equal to the maximum length, it will be returned as is.
-func Eliipsis(s string, maxLen int) string {
-	if len(s) <= maxLen {
+// Ellipsis guarantees that the returned string will not be longer than maxLen,
+// adding "..." at the end if the string is truncated. Notice that the ellipsis
+// counts towards the maxLen. Also notice that if the maxLen is less than or
+// equal to 3, the function will always return "...".
+func Ellipsis(s string, maxLen int) string {
+	size := utf8.RuneCountInString(s)
+	if size <= maxLen {
 		return s
 	}
+
 	if maxLen <= 3 {
-		return s[:maxLen]
+		return "..."
 	}
-	return s[:maxLen-3] + "..."
+
+	return string([]rune(s)[:maxLen-3]) + "..."
 }
 
 // IterString returns a Seq that yields each character of the input string as a
@@ -203,6 +210,19 @@ func IterString(seq string) iter.Seq[string] {
 	return func(yield func(string) bool) {
 		for _, r := range seq {
 			if !yield(string(r)) {
+				return
+			}
+		}
+	}
+}
+
+// IterString2 returns a Seq that yields each character of the input string as a
+// separate string, along with its index. For example, IterString2("abc")
+// would yield (0, "a"), then (1, "b"), and finally (2, "c").
+func IterString2(seq string) iter.Seq2[int, string] {
+	return func(yield func(int, string) bool) {
+		for i, r := range seq {
+			if !yield(i, string(r)) {
 				return
 			}
 		}
@@ -219,4 +239,23 @@ func IterRunes(seq string) iter.Seq[rune] {
 			}
 		}
 	}
+}
+
+// IterRunes2 returns a Seq that yields each character of the input string as a
+// separate rune, along with its index. For example, IterRunes2("abc") would
+// yield (0, 'a'), then (1, 'b'), and finally (2, 'c').
+func IterRunes2(seq string) iter.Seq2[int, rune] {
+	return func(yield func(int, rune) bool) {
+		for i, r := range seq {
+			if !yield(i, r) {
+				return
+			}
+		}
+	}
+}
+
+// Format is a simple wrapper around fmt.Sprintf that allows you to use it
+// without importing the fmt package.
+func Format(format string, args ...any) string {
+	return fmt.Sprintf(format, args...)
 }

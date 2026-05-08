@@ -1,24 +1,23 @@
 package dsx
 
 import (
-	"cmp"
 	"iter"
 )
 
 // Stack is a simple stack data structure that supports push and pop operations.
-type Stack[T cmp.Ordered] struct {
+type Stack[T comparable] struct {
 	items []T
 }
 
 // NewStack creates a new empty stack.
-func NewStack[T cmp.Ordered]() *Stack[T] {
+func NewStack[T comparable]() *Stack[T] {
 	return &Stack[T]{
 		items: []T{},
 	}
 }
 
 // NewStackFrom creates a new stack from the given items.
-func NewStackFrom[T cmp.Ordered](items []T) *Stack[T] {
+func NewStackFrom[T comparable](items []T) *Stack[T] {
 	return &Stack[T]{
 		items: items,
 	}

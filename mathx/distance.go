@@ -63,26 +63,6 @@ func HammingDistance[T Number](x1, y1, x2, y2 T) int {
 	return distance
 }
 
-// JaccardDistance calculates the Jaccard distance between two points (x1, y1) and
-// (x2, y2) by treating them as sets of coordinates and measuring the dissimilarity
-// between them. It returns a value between 0 and 1, where 0 means the points are
-// identical and 1 means they are completely different.
-func JaccardDistance[T Number](x1, y1, x2, y2 T) float64 {
-	var intersection int
-	var union int
-	if x1 == x2 {
-		intersection++
-	}
-	if y1 == y2 {
-		intersection++
-	}
-	union = 2 - intersection
-	if union == 0 {
-		return 0
-	}
-	return 1 - float64(intersection)/float64(union)
-}
-
 // MinkowskiDistance calculates the Minkowski distance between two points (x1, y1) and
 // (x2, y2) for a given order p. It generalizes the Euclidean and Manhattan distances,
 // where p=2 corresponds to Euclidean distance and p=1 corresponds to Manhattan
@@ -92,4 +72,19 @@ func MinkowskiDistance[T Number](x1, y1, x2, y2 T, p int) float64 {
 	dx := Abs(x2 - x1)
 	dy := Abs(y2 - y1)
 	return Pow(Pow(dx, pf)+Pow(dy, pf), 1/pf)
+}
+
+// CanberraDistance calculates the Canberra distance between two points (x1, y1) and
+// (x2, y2) by summing the absolute differences of their coordinates divided by the
+// sum of the absolute values of their coordinates. It returns a non-negative value
+// representing the distance, where 0 means the points are identical and larger
+// values indicate greater distance.
+func CanberraDistance[T Number](x1, y1, x2, y2 T) float64 {
+	dx := Abs(x2 - x1)
+	dy := Abs(y2 - y1)
+	sum := Abs(x1) + Abs(y1) + Abs(x2) + Abs(y2)
+	if sum == 0 {
+		return 0
+	}
+	return float64((dx + dy) / sum)
 }

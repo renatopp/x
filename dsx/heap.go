@@ -1,14 +1,13 @@
 package dsx
 
 import (
-	"cmp"
 	"container/heap"
 	"iter"
 )
 
 // HeapItem represents an item in the heap with its associated value for
 // comparison.
-type HeapItem[T cmp.Ordered] struct {
+type HeapItem[T comparable] struct {
 	Item  T
 	Value int
 }
@@ -17,12 +16,12 @@ type HeapItem[T cmp.Ordered] struct {
 // associated integer values for comparison. The heap maintains the property
 // that the item with the largest value is at the top of the heap (i.e., the
 // last element in the internal slice).
-type Heap[T cmp.Ordered] struct {
+type Heap[T comparable] struct {
 	items internalHeap[T]
 }
 
 // NewHeap creates and returns a new empty Heap for items of type T.
-func NewHeap[T cmp.Ordered]() *Heap[T] {
+func NewHeap[T comparable]() *Heap[T] {
 	return &Heap[T]{items: internalHeap[T]{}}
 }
 
@@ -277,7 +276,7 @@ func (h *Heap[T]) Iter() iter.Seq2[int, T] {
 
 // INTERNAL -------------------------------------------------------------------
 
-type internalHeap[T cmp.Ordered] []HeapItem[T]
+type internalHeap[T comparable] []HeapItem[T]
 
 func (h internalHeap[T]) Len() int           { return len(h) }
 func (h internalHeap[T]) Less(i, j int) bool { return h[i].Value < h[j].Value }

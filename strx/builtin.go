@@ -6,7 +6,6 @@ package strx
 import (
 	"iter"
 	"strings"
-	"unicode"
 )
 
 // Clone returns a fresh copy of s.
@@ -240,28 +239,6 @@ func SplitN(s, sep string, n int) []string { return strings.SplitN(s, sep, n) }
 // but without constructing the slice.
 // It returns a single-use iterator.
 func SplitSeq(s, sep string) iter.Seq[string] { return strings.SplitSeq(s, sep) }
-
-// ToLower returns s with all Unicode letters mapped to their lower case.
-func ToLower(s string) string { return strings.ToLower(s) }
-
-// ToLowerSpecial returns a copy of the string s with all Unicode letters mapped to their
-// lower case using the case mapping specified by c.
-func ToLowerSpecial(c unicode.SpecialCase, s string) string { return strings.ToLowerSpecial(c, s) }
-
-// ToTitle returns a copy of the string s with all Unicode letters mapped to
-// their Unicode title case.
-func ToTitle(s string) string { return strings.ToTitle(s) }
-
-// ToTitleSpecial returns a copy of the string s with all Unicode letters mapped to their
-// Unicode title case, giving priority to the special casing rules.
-func ToTitleSpecial(c unicode.SpecialCase, s string) string { return strings.ToTitleSpecial(c, s) }
-
-// ToUpper returns s with all Unicode letters mapped to their upper case.
-func ToUpper(s string) string { return strings.ToUpper(s) }
-
-// ToUpperSpecial returns a copy of the string s with all Unicode letters mapped to their
-// upper case using the case mapping specified by c.
-func ToUpperSpecial(c unicode.SpecialCase, s string) string { return strings.ToUpperSpecial(c, s) }
 
 // ToValidUTF8 returns a copy of the string s with each run of invalid UTF-8 byte sequences
 // replaced by the replacement string, which may be empty.

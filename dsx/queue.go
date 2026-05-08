@@ -1,24 +1,23 @@
 package dsx
 
 import (
-	"cmp"
 	"iter"
 )
 
 // Queue is a simple queue data structure that supports push and pop operations.
-type Queue[T cmp.Ordered] struct {
+type Queue[T comparable] struct {
 	items []T
 }
 
 // NewQueue creates a new empty queue.
-func NewQueue[T cmp.Ordered]() *Queue[T] {
+func NewQueue[T comparable]() *Queue[T] {
 	return &Queue[T]{
 		items: []T{},
 	}
 }
 
 // NewQueueFrom creates a new queue from the given items.
-func NewQueueFrom[T cmp.Ordered](items []T) *Queue[T] {
+func NewQueueFrom[T comparable](items []T) *Queue[T] {
 	return &Queue[T]{
 		items: items,
 	}

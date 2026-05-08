@@ -1,11 +1,10 @@
 package dsx
 
 import (
-	"cmp"
 	"iter"
 )
 
-type Container[T cmp.Ordered] interface {
+type Container[T comparable] interface {
 	Get(i int) T
 	GetOr(i int, v T) T
 	GetOk(i int) (T, bool)

@@ -34,143 +34,159 @@ import (
 // "ID": "id",
 var uppercaseAcronym = sync.Map{}
 
-// ToSnake converts a string to snake_case
-func ToSnake(s string) string {
-	return ToDelimited(s, '_')
-}
+// ToLower converts a string to lower case. Example:  `MyHello, World` becomes
+// `myhello, world`.
+func ToLower(s string) string { return strings.ToLower(s) }
 
-func ToSnakeWithIgnore(s string, ignore string) string {
-	return ToUpperDelimited(s, '_', ignore, false)
-}
+// ToUpper converts a string to UPPER CASE. Example:  `MyHello, World` becomes
+// `MYHELLO, WORLD`.
+func ToUpper(s string) string { return strings.ToUpper(s) }
 
-// ToUpperSnake converts a string to Upper_SNAKE_CASE
-func ToUpperSnake(s string) string {
-	return ToUpperDelimited(s, '_', "", true)
-}
-
-// ToKebab converts a string to kebab-case
-func ToKebab(s string) string {
-	return ToDelimited(s, '-')
-}
-
-// ToUpperKebab converts a string to Upper-KEBAB-CASE
-func ToUpperKebab(s string) string {
-	return ToUpperDelimited(s, '-', "", true)
-}
-
-// ToDelimited converts a string to delimited.snake.case
-// (in this case `delimiter = '.'`)
-func ToDelimited(s string, delimiter uint8) string {
-	return ToUpperDelimited(s, delimiter, "", false)
-}
-
-// ToUpperDelimited converts a string to Upper.DELIMITED.SNAKE.CASE
-// (in this case `delimiter = '.'; Upper = true`)
-// or delimited.snake.case
-// (in this case `delimiter = '.'; Upper = false`)
-func ToUpperDelimited(s string, delimiter uint8, ignore string, Upper bool) string {
-	s = strings.TrimSpace(s)
-	n := strings.Builder{}
-	n.Grow(len(s) + 2) // nominal 2 bytes of extra space for inserted delimiters
-	for i, v := range []byte(s) {
-		vIsCap := v >= 'A' && v <= 'Z'
-		vIsLow := v >= 'a' && v <= 'z'
-		if vIsLow && Upper {
-			v += 'A'
-			v -= 'a'
-		} else if vIsCap && !Upper {
-			v += 'a'
-			v -= 'A'
-		}
-
-		// treat acronyms as words, eg for JSONData -> JSON is a whole word
-		if i+1 < len(s) {
-			next := s[i+1]
-			vIsNum := v >= '0' && v <= '9'
-			nextIsCap := next >= 'A' && next <= 'Z'
-			nextIsLow := next >= 'a' && next <= 'z'
-			nextIsNum := next >= '0' && next <= '9'
-			// add underscore if next letter case type is changed
-			if (vIsCap && (nextIsLow || nextIsNum)) || (vIsLow && (nextIsCap || nextIsNum)) || (vIsNum && (nextIsCap || nextIsLow)) {
-				prevIgnore := ignore != "" && i > 0 && strings.ContainsAny(string(s[i-1]), ignore)
-				if !prevIgnore {
-					if vIsCap && nextIsLow {
-						if prevIsCap := i > 0 && s[i-1] >= 'A' && s[i-1] <= 'Z'; prevIsCap {
-							n.WriteByte(delimiter)
-						}
-					}
-					n.WriteByte(v)
-					if vIsLow || vIsNum || nextIsNum {
-						n.WriteByte(delimiter)
-					}
-					continue
-				}
-			}
-		}
-
-		if (v == ' ' || v == '_' || v == '-' || v == '.') && !strings.ContainsAny(string(v), ignore) {
-			// replace space/underscore/hyphen/dot with delimiter
-			n.WriteByte(delimiter)
-		} else {
-			n.WriteByte(v)
-		}
-	}
-
-	return n.String()
-}
-
-// ToCamel converts a string to CamelCase
-func ToCamel(s string) string {
-	return toCamelInitCase(s, true)
-}
-
-// ToLowerCamel converts a string to lowerCamelCase
-func ToLowerCamel(s string) string {
-	return toCamelInitCase(s, false)
-}
-
-// Converts a string to CamelCase
-func toCamelInitCase(s string, initCase bool) string {
-	s = strings.TrimSpace(s)
+// ToTitle converts a string to Title Case. The first letter of each word is
+// mapped to upper case. Words are defined as sequences of letters separated
+// by non-letter characters. Example: `MyHello, World` becomes `Myhello, World`.
+func ToTitle(s string) string {
 	if s == "" {
 		return s
 	}
-	a, hasAcronym := uppercaseAcronym.Load(s)
-	if hasAcronym {
-		s = a.(string)
+
+	n := strings.Builder{}
+	n.Grow(len(s))
+	capNext := true
+
+	for _, v := range s {
+		vIsCap := v >= 'A' && v <= 'Z'
+		vIsLow := v >= 'a' && v <= 'z'
+		vIsNumber := v >= '0' && v <= '9'
+		if capNext && vIsLow {
+			v = v - 'a' + 'A'
+		} else if !capNext && vIsCap {
+			v = v - 'A' + 'a'
+		}
+		n.WriteRune(v)
+		capNext = !(vIsCap || vIsLow || vIsNumber)
+	}
+	return n.String()
+}
+
+// ToDelimiter converts a string to a delimited-case string. For example,
+// `MyHello, World` becomes `my⚡hello⚡world` if the delimiter is `⚡`.
+func ToDelimiter(s string, d string) string {
+	if s == "" {
+		return s
+	}
+
+	n := strings.Builder{}
+	n.Grow(len(s))
+
+	lastType := "delimiter" // "cap", "low", "num", "delimiter"
+	for _, v := range s {
+		vIsCap := v >= 'A' && v <= 'Z'
+		vIsLow := v >= 'a' && v <= 'z'
+		vIsNumber := v >= '0' && v <= '9'
+		vIsSpecial := !vIsCap && !vIsLow && !vIsNumber
+
+		if vIsCap {
+			v = v - 'A' + 'a'
+		}
+
+		switch {
+		case vIsSpecial:
+			if lastType != "delimiter" {
+				n.WriteString(d)
+				lastType = "delimiter"
+			}
+
+		case vIsCap:
+			if lastType != "cap" && lastType != "delimiter" {
+				n.WriteString(d)
+			}
+			n.WriteRune(v)
+			lastType = "cap"
+
+		case vIsLow:
+			if lastType == "number" {
+				n.WriteString(d)
+			}
+			n.WriteRune(v)
+			lastType = "low"
+
+		case vIsNumber:
+			if lastType != "number" && lastType != "delimiter" {
+				n.WriteString(d)
+			}
+			n.WriteRune(v)
+			lastType = "number"
+		}
+	}
+	return strings.Trim(n.String(), d)
+}
+
+// ToSnake converts a string to snake_case. Example: `MyHello, World` becomes
+// `my_hello_world`.
+func ToSnake(s string) string { return ToDelimiter(s, "_") }
+
+// ToUpperSnake converts a string to UPPER_SNAKE_CASE. Example:
+// `MyHello, World` becomes `MY_HELLO_WORLD`.
+func ToUpperSnake(s string) string { return ToUpper(ToDelimiter(s, "_")) }
+
+// ToKebab converts a string to kebab-case. Example: `MyHello, World` becomes
+// `my-hello-world`.
+func ToKebab(s string) string { return ToDelimiter(s, "-") }
+
+// ToUpperKebab converts a string to UPPER-KEBAB-CASE. Example:
+// `MyHello, World` becomes `MY-HELLO-WORLD`.
+func ToUpperKebab(s string) string { return ToUpper(ToDelimiter(s, "-")) }
+
+// ToCamel converts a string to CamelCase. Example: `MyHello, World` becomes
+// `myHelloWorld`.
+func ToCamel(s string) string { return toInitCase(s, false) }
+
+// ToPascal converts a string to PascalCase. Example: `MyHello, World` becomes
+// `MyHelloWorld`.
+func ToPascal(s string) string { return toInitCase(s, true) }
+
+// toInitCase converts a string to camelCase or PascalCase depending on the value of
+// initCase.
+func toInitCase(s string, initCase bool) string {
+	if s == "" {
+		return s
 	}
 
 	n := strings.Builder{}
 	n.Grow(len(s))
 	capNext := initCase
-	prevIsCap := false
-	for i, v := range []byte(s) {
+	lastWasLow := false
+	for _, v := range s {
 		vIsCap := v >= 'A' && v <= 'Z'
 		vIsLow := v >= 'a' && v <= 'z'
-		if capNext {
-			if vIsLow {
-				v += 'A'
-				v -= 'a'
-			}
-		} else if i == 0 {
-			if vIsCap {
-				v += 'a'
-				v -= 'A'
-			}
-		} else if prevIsCap && vIsCap && !hasAcronym {
-			v += 'a'
-			v -= 'A'
-		}
-		prevIsCap = vIsCap
+		vIsNumber := v >= '0' && v <= '9'
+		vIsSpecial := !vIsCap && !vIsLow && !vIsNumber
 
-		if vIsCap || vIsLow {
-			n.WriteByte(v)
-			capNext = false
-		} else if vIsNum := v >= '0' && v <= '9'; vIsNum {
-			n.WriteByte(v)
+		if vIsSpecial {
 			capNext = true
-		} else {
-			capNext = v == '_' || v == ' ' || v == '-' || v == '.'
+			lastWasLow = false
+
+		} else if vIsNumber {
+			n.WriteRune(v)
+			capNext = true
+			lastWasLow = false
+
+		} else if vIsCap {
+			if !capNext && !lastWasLow {
+				v = v - 'A' + 'a'
+			}
+			n.WriteRune(v)
+			capNext = false
+			lastWasLow = false
+
+		} else if vIsLow {
+			if capNext {
+				v = v - 'a' + 'A'
+			}
+			n.WriteRune(v)
+			capNext = false
+			lastWasLow = true
 		}
 	}
 	return n.String()

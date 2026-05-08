@@ -1,6 +1,9 @@
 package testx
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func True(t *testing.T, condition bool) {
 	if !condition {
@@ -11,6 +14,12 @@ func True(t *testing.T, condition bool) {
 func False(t *testing.T, condition bool) {
 	if condition {
 		t.Fatalf("Expected condition to be false, but it was true.")
+	}
+}
+
+func AlmostEqual(t *testing.T, expected, actual float64, tolerance float64) {
+	if math.Abs(expected-actual) > tolerance {
+		t.Fatalf("Expected %v, but got %v.", expected, actual)
 	}
 }
 
