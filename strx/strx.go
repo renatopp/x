@@ -93,7 +93,7 @@ func PadLeft(s string, n int) string {
 // If the string is already longer than the desired length, it will be returned
 // as is.
 func PadLeftWith(s string, n int, with string) string {
-	n = n - len(s)
+	n = n - utf8.RuneCountInString(s)
 	if n <= 0 {
 		return s
 	}
@@ -115,7 +115,7 @@ func PadRight(s string, n int) string {
 // If the string is already longer than the desired length, it will be returned
 // as is.
 func PadRightWith(s string, n int, with string) string {
-	n = n - len(s)
+	n = n - utf8.RuneCountInString(s)
 	if n <= 0 {
 		return s
 	}
@@ -139,7 +139,7 @@ func PadCenter(s string, n int) string {
 // If the string is already longer than the desired length, it will be returned
 // as is.
 func PadCenterWith(s string, n int, with string) string {
-	n = n - len(s)
+	n = n - utf8.RuneCountInString(s)
 	if n <= 0 {
 		return s
 	}
@@ -154,7 +154,7 @@ func PadCenterWith(s string, n int, with string) string {
 // FirstUp capitalizes the first letter of the string and returns the modified
 // string. If the string is empty, it will be returned as is.
 func FirstUp(s string) string {
-	if len(s) == 0 {
+	if utf8.RuneCountInString(s) == 0 {
 		return s
 	}
 	r, size := utf8.DecodeRuneInString(s)
@@ -164,7 +164,7 @@ func FirstUp(s string) string {
 // FirstLow lowercases the first letter of the string and returns the modified
 // string. If the string is empty, it will be returned as is.
 func FirstLow(s string) string {
-	if len(s) == 0 {
+	if utf8.RuneCountInString(s) == 0 {
 		return s
 	}
 	r, size := utf8.DecodeRuneInString(s)
