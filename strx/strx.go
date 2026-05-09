@@ -259,3 +259,11 @@ func IterRunes2(seq string) iter.Seq2[int, rune] {
 func Format(format string, args ...any) string {
 	return fmt.Sprintf(format, args...)
 }
+
+// Length returns the number of characters in the string. It counts Unicode
+// characters correctly, so it will return the expected length for strings with
+// multi-byte characters. For example, Length("hello") would return 5, and
+// Length("你好") would return 2.
+func Length(s string) int {
+	return utf8.RuneCountInString(s)
+}

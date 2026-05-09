@@ -2,6 +2,11 @@
 
 This is an attempt to extend the golang builtin package with more utilities while improving the consistence of its interface.
 
+TODO:
+
+- strx.Wrap (breaking by word, breaking by letter)
+- strx.TableWriter (with styles, with colspan?)
+
 
 | **Package**                | **Description**             | **Status**     |
 |----------------------------|-----------------------------|----------------|
