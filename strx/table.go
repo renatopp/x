@@ -51,9 +51,17 @@ var TableStyleUnicode = TableStyle{
 	"┌", "┬", "┐", "├", "┼", "┤", "└", "┴", "┘", "─", "─", "│", "│",
 	"┌", "┬", "┐", "", "", "", "└", "┴", "┘", "─", "", "│", "│",
 }
+var TableStyleUnicodeGrid = TableStyle{
+	"┌", "┬", "┐", "├", "┼", "┤", "└", "┴", "┘", "─", "─", "│", "│",
+	"┌", "┬", "┐", "├", "┼", "┤", "└", "┴", "┘", "─", "─", "│", "│",
+}
 var TableStyleUnicodeDouble = TableStyle{
 	"╔", "╦", "╗", "╠", "╬", "╣", "╚", "╩", "╝", "═", "═", "║", "║",
 	"╔", "╦", "╗", "", "", "", "╚", "╩", "╝", "═", "", "║", "║",
+}
+var TableStyleUnicodeDoubleGrid = TableStyle{
+	"╔", "╦", "╗", "╠", "╬", "╣", "╚", "╩", "╝", "═", "═", "║", "║",
+	"╔", "╦", "╗", "╠", "╬", "╣", "╚", "╩", "╝", "═", "═", "║", "║",
 }
 
 // TableStyle defines the characters used to render the table. It has two sets
@@ -299,7 +307,7 @@ func (t *Table) toString(value any) (string, TableAlignment) {
 
 func (t *Table) renderBorder(b *strings.Builder, i int) {
 	left, mid, right, h := t.getBorderParts(i)
-	if left == "" && mid == "" && right == "" && h == "" {
+	if h == "" {
 		return
 	}
 
@@ -402,7 +410,7 @@ func (t *Table) getBorderParts(i int) (left, mid, right, h string) {
 	case rowAbove == nil && isMeta:
 		return t.style.MTL, t.style.MTM, t.style.MTR, t.style.MHE
 	case rowAbove == nil && !isMeta:
-		return t.style.DBL, t.style.DTM, t.style.DTR, t.style.DHE
+		return t.style.DTL, t.style.DTM, t.style.DTR, t.style.DHE
 	case rowBelow == nil && isMeta:
 		return t.style.MBL, t.style.MBM, t.style.MBR, t.style.MHE
 	case rowBelow == nil && !isMeta:
@@ -412,7 +420,7 @@ func (t *Table) getBorderParts(i int) (left, mid, right, h string) {
 		case rowAbove.section:
 			return t.style.MML, t.style.MTM, t.style.MMR, t.style.MHI
 		case rowBelow.section:
-			return t.style.MML, t.style.MTM, t.style.MMR, t.style.MHI
+			return t.style.MML, t.style.MBM, t.style.MMR, t.style.MHI
 		default:
 			return t.style.MML, t.style.MMM, t.style.MMR, t.style.MHI
 		}
@@ -421,7 +429,7 @@ func (t *Table) getBorderParts(i int) (left, mid, right, h string) {
 		case rowAbove.section:
 			return t.style.DML, t.style.DTM, t.style.DMR, t.style.DHI
 		case rowBelow.section:
-			return t.style.DML, t.style.DTM, t.style.DMR, t.style.DHI
+			return t.style.DML, t.style.DBM, t.style.DMR, t.style.DHI
 		default:
 			return t.style.DML, t.style.DMM, t.style.DMR, t.style.DHI
 		}
