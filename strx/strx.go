@@ -5,7 +5,6 @@ package strx
 
 import (
 	"fmt"
-	"iter"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -204,56 +203,6 @@ func Ellipsis(s string, maxLen int) string {
 	return string([]rune(s)[:maxLen-3]) + "..."
 }
 
-// IterString returns a Seq that yields each character of the input string as a
-// separate string. For example, IterString("abc") would yield "a", then "b", and finally "c".
-func IterString(seq string) iter.Seq[string] {
-	return func(yield func(string) bool) {
-		for _, r := range seq {
-			if !yield(string(r)) {
-				return
-			}
-		}
-	}
-}
-
-// IterString2 returns a Seq that yields each character of the input string as a
-// separate string, along with its index. For example, IterString2("abc")
-// would yield (0, "a"), then (1, "b"), and finally (2, "c").
-func IterString2(seq string) iter.Seq2[int, string] {
-	return func(yield func(int, string) bool) {
-		for i, r := range seq {
-			if !yield(i, string(r)) {
-				return
-			}
-		}
-	}
-}
-
-// IterRunes returns a Seq that yields each character of the input string as a
-// separate rune. For example, IterRunes("abc") would yield 'a', then 'b', and finally 'c'.
-func IterRunes(seq string) iter.Seq[rune] {
-	return func(yield func(rune) bool) {
-		for _, r := range seq {
-			if !yield(r) {
-				return
-			}
-		}
-	}
-}
-
-// IterRunes2 returns a Seq that yields each character of the input string as a
-// separate rune, along with its index. For example, IterRunes2("abc") would
-// yield (0, 'a'), then (1, 'b'), and finally (2, 'c').
-func IterRunes2(seq string) iter.Seq2[int, rune] {
-	return func(yield func(int, rune) bool) {
-		for i, r := range seq {
-			if !yield(i, r) {
-				return
-			}
-		}
-	}
-}
-
 // Format is a simple wrapper around fmt.Sprintf that allows you to use it
 // without importing the fmt package.
 func Format(format string, args ...any) string {
@@ -268,78 +217,12 @@ func Length(s string) int {
 	return utf8.RuneCountInString(s)
 }
 
-func IterFields2(s string) iter.Seq2[int, string] {
-	return func(yield func(int, string) bool) {
-		i := 0
-		for word := range IterFields(s) {
-			if !yield(i, word) {
-				return
-			}
-			i++
-		}
-	}
-}
-
-func IterFieldsFunc2(s string, f func(rune) bool) iter.Seq2[int, string] {
-	return func(yield func(int, string) bool) {
-		i := 0
-		for word := range IterFieldsFunc(s, f) {
-			if !yield(i, word) {
-				return
-			}
-			i++
-		}
-	}
-}
-
+// Lines splits the input string into lines using the newline character as a
+// separator. It returns a slice of strings, where each string is a line from the
+// input string. For example, Lines("hello\nworld") would return
+// []string{"hello", "world"}.
 func Lines(s string) []string {
 	return strings.Split(s, "\n")
-}
-
-func IterLines(s string) iter.Seq[string] {
-	return func(yield func(string) bool) {
-		for line := range strings.Lines(s) {
-			if !yield(Trim(line, "\r\n")) {
-				return
-			}
-		}
-	}
-}
-
-func IterLines2(s string) iter.Seq2[int, string] {
-	return func(yield func(int, string) bool) {
-		i := 0
-		for line := range IterLines(s) {
-			if !yield(i, line) {
-				return
-			}
-			i++
-		}
-	}
-}
-
-func IterSplit2(s, sep string) iter.Seq2[int, string] {
-	return func(yield func(int, string) bool) {
-		i := 0
-		for part := range IterSplit(s, sep) {
-			if !yield(i, part) {
-				return
-			}
-			i++
-		}
-	}
-}
-
-func IterSplitAfter2(s, sep string) iter.Seq2[int, string] {
-	return func(yield func(int, string) bool) {
-		i := 0
-		for part := range IterSplitAfter(s, sep) {
-			if !yield(i, part) {
-				return
-			}
-			i++
-		}
-	}
 }
 
 // WrapWord wraps the input string to the specified maximum length, breaking at
@@ -362,7 +245,7 @@ func WrapWordWith(s string, maxLen int, sep string) string {
 	}
 	var b strings.Builder
 	lineLen := 0
-	for i, word := range IterFields2(s) {
+	for i, word := range IterFields(s) {
 		wordLen := Length(word)
 		if lineLen > 0 && lineLen+1+wordLen > maxLen {
 			b.WriteString(sep)
@@ -430,7 +313,7 @@ func WrapHyphenWith(s string, maxLen int, sep string) string {
 
 	var b strings.Builder
 	lineLen := 0
-	for _, word := range IterFields2(s) {
+	for _, word := range IterFields(s) {
 	reset:
 		wordLen := Length(word)
 

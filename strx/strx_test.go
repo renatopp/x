@@ -132,19 +132,7 @@ func TestEllipsis(t *testing.T) {
 
 func TestIterString(t *testing.T) {
 	values := []string{}
-	for s := range strx.IterString("Hello") {
-		values = append(values, s)
-	}
-	testx.Equal(t, "H", values[0])
-	testx.Equal(t, "e", values[1])
-	testx.Equal(t, "l", values[2])
-	testx.Equal(t, "l", values[3])
-	testx.Equal(t, "o", values[4])
-}
-
-func TestIterString2(t *testing.T) {
-	values := []string{}
-	for i, s := range strx.IterString2("Hello") {
+	for i, s := range strx.IterString("Hello") {
 		values = append(values, s)
 		testx.Equal(t, i, i)
 	}
@@ -157,19 +145,7 @@ func TestIterString2(t *testing.T) {
 
 func TestIterRunes(t *testing.T) {
 	values := []rune{}
-	for r := range strx.IterRunes("Hello") {
-		values = append(values, r)
-	}
-	testx.Equal(t, 'H', values[0])
-	testx.Equal(t, 'e', values[1])
-	testx.Equal(t, 'l', values[2])
-	testx.Equal(t, 'l', values[3])
-	testx.Equal(t, 'o', values[4])
-}
-
-func TestIterRunes2(t *testing.T) {
-	values := []rune{}
-	for i, r := range strx.IterRunes2("Hello") {
+	for i, r := range strx.IterRunes("Hello") {
 		values = append(values, r)
 		testx.Equal(t, i, i)
 	}

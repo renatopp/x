@@ -4,7 +4,6 @@ package strx
 // for convenience.
 
 import (
-	"iter"
 	"strings"
 )
 
@@ -79,18 +78,6 @@ func Fields(s string) []string { return strings.Fields(s) }
 // FieldsFunc makes no guarantees about the order in which it calls f(c)
 // and assumes that f always returns the same value for a given c.
 func FieldsFunc(s string, f func(rune) bool) []string { return strings.FieldsFunc(s, f) }
-
-// IterFieldsFunc returns an iterator over substrings of s split around runs of
-// Unicode code points satisfying f(c).
-// The iterator yields the same strings that would be returned by [FieldsFunc](s),
-// but without constructing the slice.
-func IterFieldsFunc(s string, f func(rune) bool) iter.Seq[string] { return strings.FieldsFuncSeq(s, f) }
-
-// IterFields returns an iterator over substrings of s split around runs of
-// whitespace characters, as defined by [unicode.IsSpace].
-// The iterator yields the same strings that would be returned by [Fields](s),
-// but without constructing the slice.
-func IterFields(s string) iter.Seq[string] { return strings.FieldsSeq(s) }
 
 // HasPrefix reports whether the string s begins with prefix.
 func HasPrefix(s, prefix string) bool { return strings.HasPrefix(s, prefix) }
@@ -207,12 +194,6 @@ func SplitAfter(s, sep string) []string { return strings.SplitAfter(s, sep) }
 // as described in the documentation for [SplitAfter].
 func SplitAfterN(s, sep string, n int) []string { return strings.SplitAfterN(s, sep, n) }
 
-// IterSplitAfter returns an iterator over substrings of s split after each instance of sep.
-// The iterator yields the same strings that would be returned by [SplitAfter](s, sep),
-// but without constructing the slice.
-// It returns a single-use iterator.
-func IterSplitAfter(s, sep string) iter.Seq[string] { return strings.SplitAfterSeq(s, sep) }
-
 // SplitN slices s into substrings separated by sep and returns a slice of
 // the substrings between those separators.
 //
@@ -226,12 +207,6 @@ func IterSplitAfter(s, sep string) iter.Seq[string] { return strings.SplitAfterS
 //
 // To split around the first instance of a separator, see [Cut].
 func SplitN(s, sep string, n int) []string { return strings.SplitN(s, sep, n) }
-
-// SplitSeq returns an iterator over all substrings of s separated by sep.
-// The iterator yields the same strings that would be returned by [Split](s, sep),
-// but without constructing the slice.
-// It returns a single-use iterator.
-func IterSplit(s, sep string) iter.Seq[string] { return strings.SplitSeq(s, sep) }
 
 // ToValidUTF8 returns a copy of the string s with each run of invalid UTF-8 byte sequences
 // replaced by the replacement string, which may be empty.

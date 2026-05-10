@@ -12,8 +12,8 @@ func main() {
 	t.Data("1", "maria", "28")
 	t.DataSection("--")
 	t.Data("2", "joão", "3")
-	t.WithLength(10, 20, 5)
-	t.WithStyle(strx.TableStyleAsciiSeparated)
 	t.MetaSection("FOOTER")
+	t.WithLength(10, 20, 5)
+	// t.WithStyle(strx.TableStyleUnicode)
 	println(t.Render())
 }
