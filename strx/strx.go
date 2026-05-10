@@ -267,3 +267,186 @@ func Format(format string, args ...any) string {
 func Length(s string) int {
 	return utf8.RuneCountInString(s)
 }
+
+func IterFields2(s string) iter.Seq2[int, string] {
+	return func(yield func(int, string) bool) {
+		i := 0
+		for word := range IterFields(s) {
+			if !yield(i, word) {
+				return
+			}
+			i++
+		}
+	}
+}
+
+func IterFieldsFunc2(s string, f func(rune) bool) iter.Seq2[int, string] {
+	return func(yield func(int, string) bool) {
+		i := 0
+		for word := range IterFieldsFunc(s, f) {
+			if !yield(i, word) {
+				return
+			}
+			i++
+		}
+	}
+}
+
+func Lines(s string) []string {
+	return strings.Split(s, "\n")
+}
+
+func IterLines2(s string) iter.Seq2[int, string] {
+	return func(yield func(int, string) bool) {
+		i := 0
+		for line := range IterLines(s) {
+			if !yield(i, line) {
+				return
+			}
+			i++
+		}
+	}
+}
+
+func IterSplit2(s, sep string) iter.Seq2[int, string] {
+	return func(yield func(int, string) bool) {
+		i := 0
+		for part := range IterSplit(s, sep) {
+			if !yield(i, part) {
+				return
+			}
+			i++
+		}
+	}
+}
+
+func IterSplitAfter2(s, sep string) iter.Seq2[int, string] {
+	return func(yield func(int, string) bool) {
+		i := 0
+		for part := range IterSplitAfter(s, sep) {
+			if !yield(i, part) {
+				return
+			}
+			i++
+		}
+	}
+}
+
+// WrapWord wraps the input string to the specified maximum length, breaking at
+// word boundaries.
+//
+// Example: `apple, bananas and oranges` wrapped to a max length of 10 would
+// become: `apple,\nbananas\nand\noranges`
+func WrapWord(s string, maxLen int) string {
+	return WrapWordWith(s, maxLen, "\n")
+}
+
+// WrapWordWith wraps the input string to the specified maximum length,
+// breaking at word boundaries and using the specified separator.
+//
+// Example: `apple, bananas and oranges` wrapped to a max length of 10 with a
+// separator of " | " would become: `apple, | bananas | and | oranges`
+func WrapWordWith(s string, maxLen int, sep string) string {
+	if maxLen <= 0 {
+		return s
+	}
+	var b strings.Builder
+	lineLen := 0
+	for i, word := range IterFields2(s) {
+		wordLen := Length(word)
+		if lineLen > 0 && lineLen+1+wordLen > maxLen {
+			b.WriteString(sep)
+			lineLen = 0
+		} else if i > 0 {
+			b.WriteString(" ")
+			lineLen++
+		}
+		b.WriteString(word)
+		lineLen += wordLen
+	}
+	return b.String()
+}
+
+// WrapLetter wraps the input string to the specified maximum length, breaking
+// at letter boundaries.
+//
+// Example: `apple, bananas and oranges` wrapped to a max length of 10 would
+// become: `apple, ban\nanas and\n oranges`
+func WrapLetter(s string, maxLen int) string {
+	return WrapLetterWith(s, maxLen, "\n")
+}
+
+// WrapLetterWith wraps the input string to the specified maximum length, breaking
+// at letter boundaries and using the specified separator.
+// Example: `apple, bananas and oranges` wrapped to a max length of 10 with a
+// separator of " | " would become: `apple, ba | nanas and | oranges`
+func WrapLetterWith(s string, maxLen int, sep string) string {
+	if maxLen <= 0 {
+		return s
+	}
+
+	var b strings.Builder
+	lineLen := 0
+	for _, r := range s {
+		if lineLen > 0 && lineLen+1 > maxLen {
+			b.WriteString("\n")
+			lineLen = 0
+		}
+		b.WriteRune(r)
+		lineLen++
+	}
+	return b.String()
+}
+
+// WrapHyphen wraps the input string to the specified maximum length, breaking
+// at letter boundaries and adding a hyphen at the end of the line if the word
+// is broken.
+//
+// Example: `apple, bananas and oranges` wrapped to a max length of 10 would
+// become: `apple, bana-\nanas and \noranges`
+func WrapHyphen(s string, maxLen int) string {
+	return WrapHyphenWith(s, maxLen, "\n")
+}
+
+// WrapHyphenWith wraps the input string to the specified maximum length, breaking
+// at letter boundaries and adding a hyphen at the end of the line if the word
+// is broken. It uses the specified separator between lines.
+// Example: `apple, bananas and oranges` wrapped to a max length of 10 with a
+// separator of " | " would become: `apple, bana- | nas and | oranges`
+func WrapHyphenWith(s string, maxLen int, sep string) string {
+	if maxLen <= 1 {
+		return s
+	}
+
+	var b strings.Builder
+	lineLen := 0
+	for _, word := range IterFields2(s) {
+	reset:
+		wordLen := Length(word)
+
+		if lineLen+wordLen <= maxLen {
+			b.WriteString(word)
+			lineLen += wordLen
+			if lineLen < maxLen {
+				b.WriteString(" ")
+				lineLen++
+			}
+			continue
+		}
+
+		if maxLen-lineLen <= 1 {
+			b.WriteString(sep)
+			lineLen = 0
+			goto reset
+		}
+
+		runes := []rune(word)
+		i := maxLen - lineLen - 1
+		b.WriteString(string(runes[:i]))
+		b.WriteString("-\n")
+		word = string(runes[i:])
+		lineLen = 0
+		goto reset
+	}
+	return b.String()
+}
