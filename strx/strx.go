@@ -296,6 +296,16 @@ func Lines(s string) []string {
 	return strings.Split(s, "\n")
 }
 
+func IterLines(s string) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		for line := range strings.Lines(s) {
+			if !yield(Trim(line, "\r\n")) {
+				return
+			}
+		}
+	}
+}
+
 func IterLines2(s string) iter.Seq2[int, string] {
 	return func(yield func(int, string) bool) {
 		i := 0

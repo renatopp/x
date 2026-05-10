@@ -1,6 +1,8 @@
 package strx
 
-import "strings"
+import (
+	"strings"
+)
 
 type TableAlignment int8
 
@@ -58,6 +60,7 @@ type TableStyle struct {
 }
 
 type TableRow struct {
+	lines      int
 	values     []string
 	alignments []TableAlignment
 	meta       bool
@@ -132,8 +135,21 @@ func (t *Table) WithAlignLeft() *Table {
 	t.align = TableLeft
 	return t
 }
+
 func (t *Table) WithAlignCenter() *Table {
 	t.align = TableCenter
+	return t
+}
+
+func (t *Table) WithLength(length ...int) *Table {
+	for i := range length {
+		if i < len(t.lengths) {
+			t.lengths[i] = length[i]
+		} else {
+			t.lengths = append(t.lengths, length[i])
+		}
+	}
+
 	return t
 }
 
@@ -147,7 +163,7 @@ func (t *Table) Render() string {
 	t.renderBorder(b, 0)
 	for i := range t.rows {
 		t.renderRow(b, i)
-		t.renderBorder(b, i)
+		t.renderBorder(b, i+1)
 	}
 	return b.String()
 }
@@ -163,15 +179,20 @@ func (t *Table) addRow(meta bool, section bool, values ...any) *TableRow {
 		v, a := t.toString(values[i])
 		row.values[i] = v
 		row.alignments[i] = a
+		row.lines = max(row.lines, Count(v, "\n")+1)
 		if t.align != TableAuto {
 			row.alignments[i] = t.align
 		} else if meta || section {
 			row.alignments[i] = TableCenter
 		}
-		if i >= len(t.lengths) {
-			t.lengths = append(t.lengths, 0)
+		if !section {
+			if i >= len(t.lengths) {
+				t.lengths = append(t.lengths, 0)
+			}
+			for _, line := range IterLines2(v) {
+				t.lengths[i] = max(t.lengths[i], Length(line))
+			}
 		}
-		t.lengths[i] = max(t.lengths[i], Length(v))
 	}
 	t.cols = max(len(values), t.cols)
 	t.rows = append(t.rows, row)
@@ -208,7 +229,7 @@ func (t *Table) renderBorder(b *strings.Builder, i int) {
 		length := t.getTotalLength()
 		dividers := Length(mid) * t.cols
 		paddings := 2 * t.cols
-		b.WriteString(Format("%s%s%s", left, strings.Repeat(h, length+dividers+paddings), right))
+		b.WriteString(Format("%s%s%s", left, strings.Repeat(h, length+dividers+paddings-1), right))
 	} else {
 		b.WriteString(left)
 		for i, length := range t.lengths {
@@ -222,23 +243,34 @@ func (t *Table) renderBorder(b *strings.Builder, i int) {
 	b.WriteString("\n")
 }
 
-// TODO: consider multi-line cells when rendering borders and rows
 func (t *Table) renderRow(b *strings.Builder, i int) {
 	row := t.rows[i]
 	ve, vi := t.getVerticalSeparator(i)
+
+	cells := make([][]string, len(row.values))
+	lines := row.lines
+
 	if row.section {
 		length := t.getTotalLength()
 		dividers := Length(vi) * t.cols
 		paddings := 2 * t.cols
-		value := t.alignValue(row.values[0], row.alignments[0], length+dividers+paddings)
-		b.WriteString(Format("%s%s%s\n", ve, value, ve))
+		size := length + dividers + paddings - 3
+		value := WrapWord(row.values[0], size)
+		lines = Count(value, "\n") + 1
+		cells[0] = t.getCellLines(value, row.alignments[0], size, lines)
+
 	} else {
-		b.WriteString(ve)
 		for c, value := range row.values {
 			align := row.alignments[c]
 			length := t.lengths[c]
-			value = t.alignValue(value, align, length)
-			b.WriteString(Format(" %s ", value))
+			cells[c] = t.getCellLines(value, align, length, row.lines)
+		}
+	}
+
+	for l := 0; l < lines; l++ {
+		b.WriteString(ve)
+		for c, cell := range cells {
+			b.WriteString(Format(" %s ", cell[l]))
 			if c < len(row.values)-1 {
 				b.WriteString(vi)
 			}
@@ -248,13 +280,18 @@ func (t *Table) renderRow(b *strings.Builder, i int) {
 	}
 }
 
-func (t *Table) renderCell(b *strings.Builder, row *TableRow, col int) {
-	value := row.values[col]
-	align := row.alignments[col]
-	length := t.lengths[col]
-	value = t.alignValue(value, align, length)
-	b.WriteString(Format(" %s ", value))
+func (t *Table) getCellLines(value string, align TableAlignment, length int, lines int) []string {
+	result := make([]string, lines)
+	for i := range result {
+		result[i] = Repeat(" ", length)
+	}
+	for i, line := range IterLines2(value) {
+		result[i] = t.alignValue(line, align, length)
+	}
+	return result
 }
+
+// }
 
 func (t *Table) getBorderRows(i int) (above, below *TableRow) {
 	var rowAbove, rowBelow *TableRow
@@ -269,6 +306,7 @@ func (t *Table) getBorderRows(i int) (above, below *TableRow) {
 
 func (t *Table) getBorderParts(i int) (left, mid, right, h string) {
 	rowAbove, rowBelow := t.getBorderRows(i)
+
 	isMeta := rowAbove != nil && rowAbove.meta || rowBelow != nil && rowBelow.meta
 
 	switch {
@@ -318,14 +356,18 @@ func (t *Table) getTotalLength() int {
 }
 
 func (t *Table) alignValue(v string, align TableAlignment, length int) string {
-	switch align {
-	case TableLeft:
-		return PadRight(v, length)
-	case TableCenter:
-		return PadCenter(v, length)
-	case TableRight:
-		return PadLeft(v, length)
-	default:
-		return v
+	b := &strings.Builder{}
+	for _, line := range IterLines2(v) {
+		switch align {
+		case TableLeft:
+			b.WriteString(PadRight(line, length))
+		case TableCenter:
+			b.WriteString(PadCenter(line, length))
+		case TableRight:
+			b.WriteString(PadLeft(line, length))
+		default:
+			b.WriteString(line)
+		}
 	}
+	return b.String()
 }

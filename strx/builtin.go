@@ -143,13 +143,6 @@ func LastIndexOfByte(s string, c byte) int { return strings.LastIndexByte(s, c) 
 // Unicode code point satisfying f(c), or -1 if none do.
 func LastIndexOfFunc(s string, f func(rune) bool) int { return strings.LastIndexFunc(s, f) }
 
-// IterLines returns an iterator over the newline-terminated lines in the string s.
-// The lines yielded by the iterator include their terminating newlines.
-// If s is empty, the iterator yields no lines at all.
-// If s does not end in a newline, the final yielded line will not end in a newline.
-// It returns a single-use iterator.
-func IterLines(s string) iter.Seq[string] { return strings.Lines(s) }
-
 // Map returns a copy of the string s with all its characters modified
 // according to the mapping function. If mapping returns a negative value, the character is
 // dropped from the string with no replacement.
