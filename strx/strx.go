@@ -92,7 +92,7 @@ func PadLeft(s string, n int) string {
 // If the string is already longer than the desired length, it will be returned
 // as is.
 func PadLeftWith(s string, n int, with string) string {
-	n = n - utf8.RuneCountInString(s)
+	n = n - VisualLength(s)
 	if n <= 0 {
 		return s
 	}
@@ -114,7 +114,7 @@ func PadRight(s string, n int) string {
 // If the string is already longer than the desired length, it will be returned
 // as is.
 func PadRightWith(s string, n int, with string) string {
-	n = n - utf8.RuneCountInString(s)
+	n = n - VisualLength(s)
 	if n <= 0 {
 		return s
 	}
@@ -138,7 +138,7 @@ func PadCenter(s string, n int) string {
 // If the string is already longer than the desired length, it will be returned
 // as is.
 func PadCenterWith(s string, n int, with string) string {
-	n = n - utf8.RuneCountInString(s)
+	n = n - VisualLength(s)
 	if n <= 0 {
 		return s
 	}
@@ -264,7 +264,7 @@ func WrapWordWith(s string, maxLen int, sep string) string {
 	var b strings.Builder
 	lineLen := 0
 	for i, word := range IterFields(s) {
-		wordLen := Length(word)
+		wordLen := VisualLength(word)
 		if lineLen > 0 && lineLen+1+wordLen > maxLen {
 			b.WriteString(sep)
 			lineLen = 0
@@ -333,7 +333,7 @@ func WrapHyphenWith(s string, maxLen int, sep string) string {
 	lineLen := 0
 	for _, word := range IterFields(s) {
 	reset:
-		wordLen := Length(word)
+		wordLen := VisualLength(word)
 
 		if lineLen+wordLen <= maxLen {
 			b.WriteString(word)
