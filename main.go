@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/renatopp/x/fmtx"
 	"github.com/renatopp/x/strx"
 )
 
@@ -16,4 +17,11 @@ func main() {
 	t.WithLength(10, 20, 5)
 	t.WithStyle(strx.TableStyleUnicodeDoubleGrid)
 	println(t.Render())
+
+	// All possible styled string in terminal:
+	style := fmtx.NewStyle().
+		WithBold().
+		WithForeground(fmtx.NewColorAnsi(31)).
+		Apply
+	println(style("Hello World"))
 }
