@@ -217,6 +217,24 @@ func Length(s string) int {
 	return utf8.RuneCountInString(s)
 }
 
+// Length returns the number of characters in the string ignoring escape codes,
+// including color codes. It counts Unicode characters correctly, so it will
+// return the expected length for strings with multi-byte characters.
+func VisualLength(s string) int {
+	count := 0
+	inEscape := false
+	for _, r := range s {
+		if r == '\x1b' {
+			inEscape = true
+		} else if inEscape && r == 'm' {
+			inEscape = false
+		} else if !inEscape && r != utf8.RuneError {
+			count++
+		}
+	}
+	return count
+}
+
 // Lines splits the input string into lines using the newline character as a
 // separator. It returns a slice of strings, where each string is a line from the
 // input string. For example, Lines("hello\nworld") would return

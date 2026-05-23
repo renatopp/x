@@ -8,7 +8,7 @@ import (
 func main() {
 	t := strx.NewTable()
 	t.MetaSection("THIS IS A VERY LARGE TITLE THAT SHOULD BE BROKEN INTO MULTIPLE LINES")
-	t.Meta("ID", "NAME", "AGE")
+	t.Meta("ID", "NAME", fmtx.Red("AGE"))
 	t.Data("0", "renato\nr2p.dev", 39).ToCenter()
 	t.Data("1", "maria", 28).ToRight()
 	t.DataSection("This is another very large section that should be broken into multiple lines")
@@ -21,7 +21,8 @@ func main() {
 	// All possible styled string in terminal:
 	style := fmtx.NewStyle().
 		WithBold().
-		WithForeground(fmtx.NewColorAnsi(31)).
+		WithColor(fmtx.ColorRed).
 		Apply
 	println(style("Hello World"))
+	println(fmtx.Stylize("Hello World", fmtx.Italic, fmtx.Fraktur, fmtx.BgBrightCyan, fmtx.Magenta))
 }

@@ -5,6 +5,19 @@ import (
 	"strings"
 )
 
+var enabled = true
+
+// EnableColors enables the use of colors globally in the package. By default,
+// colors are enabled.
+func EnableColors() {
+	enabled = true
+}
+
+// DisableColors disables the use of colors globally in the package.
+func DisableColors() {
+	enabled = false
+}
+
 type ColorMode uint8
 
 const (
@@ -13,25 +26,51 @@ const (
 	ColorModeTrue
 )
 
+// StyleColor represents a color that can be used in a Style. It can be an
+// ANSI color, a 256 color or a true color.
 type StyleColor struct {
 	mode ColorMode
+	bg   bool  // User for 256 and true colors
 	r    uint8 // Used for all modes
 	g    uint8 // Not used for ansi or 256 modes
 	b    uint8 // Not used for ansi or 256 modes
 }
 
-func NewColor(r, g, b uint8) StyleColor {
-	return StyleColor{mode: ColorModeTrue, r: r, g: g, b: b}
-}
-
+// NewColorAnsi creates a new ANSI color with the given code. All ansi colors
+// are mapped to constants defined in this package, you may use them instead of
+// creating new ones with this function.
+//
+// Examples: `ColorRed`, `ColorBgBrightBlue`, ...
 func NewColorAnsi(code uint8) StyleColor {
 	return StyleColor{mode: ColorModeAnsi, r: code}
 }
 
+// NewColor creates a new **FOREGROUND** true color with the given RGB values.
+// Use `NewColorBg` to create a background color.
+func NewColor(r, g, b uint8) StyleColor {
+	return StyleColor{mode: ColorModeTrue, r: r, g: g, b: b}
+}
+
+// NewColorBg creates a new **BACKGROUND** true color with the given RGB values.
+// Use `NewColor` to create a foreground color.
+func NewColorBg(r, g, b uint8) StyleColor {
+	return StyleColor{mode: ColorModeTrue, bg: true, r: r, g: g, b: b}
+}
+
+// NewColor256 creates a new 256 **FOREGROUND** color with the given code.
+// Use `NewColor256Bg` to create a background color.
 func NewColor256(code uint8) StyleColor {
 	return StyleColor{mode: ColorMode256, r: code}
 }
 
+// NewColor256Bg creates a new 256 **BACKGROUND** color with the given code.
+// Use `NewColor256` to create a foreground color.
+func NewColor256Bg(code uint8) StyleColor {
+	return StyleColor{mode: ColorMode256, bg: true, r: code}
+}
+
+// ToAnsi converts the color to an ANSI color. If the color is already an ANSI
+// color, it returns the same color.
 func (c *StyleColor) ToAnsi() StyleColor {
 	if c.mode == ColorModeAnsi {
 		return *c
@@ -47,13 +86,20 @@ func (c *StyleColor) ToAnsi() StyleColor {
 	return StyleColor{mode: ColorModeAnsi, r: uint8(code)}
 }
 
+// Code returns the ANSI code for the color, depending on its mode.
 func (c *StyleColor) Code() string {
 	switch c.mode {
 	case ColorModeAnsi:
 		return fmt.Sprintf("%d", c.r)
 	case ColorMode256:
-		return fmt.Sprintf("8;5;%d", c.r)
+		if c.bg {
+			return fmt.Sprintf("48;5;%d", c.r)
+		}
+		return fmt.Sprintf("38;5;%d", c.r)
 	case ColorModeTrue:
+		if c.bg {
+			return fmt.Sprintf("48;2;%d;%d;%d", c.r, c.g, c.b)
+		}
 		return fmt.Sprintf("38;2;%d;%d;%d", c.r, c.g, c.b)
 	default:
 		return "0"
@@ -67,7 +113,7 @@ const (
 	modUnderline       = "4"
 	modSlowBlink       = "5"
 	modRapidBlink      = "6"
-	modReverse         = "7"
+	modInverse         = "7"
 	modHidden          = "8"
 	modStrikeThrough   = "9"
 	modFraktur         = "20"
@@ -77,91 +123,187 @@ const (
 	modOverline        = "53"
 )
 
+// Style represents a combination of text modifiers and colors that can be
+// applied to a string.
 type Style struct {
-	modifiers  []string
-	foreground *StyleColor
-	background *StyleColor
+	modifiers []string
+	colors    []StyleColor
 }
 
+// NewStyle creates a new empty Style.
 func NewStyle() *Style {
 	return &Style{}
 }
 
+// WithBold adds the bold modifier to the style.
 func (s *Style) WithBold() *Style {
 	s.modifiers = append(s.modifiers, modBold)
 	return s
 }
+
+// WithDim adds the dim modifier to the style.
 func (s *Style) WithDim() *Style {
 	s.modifiers = append(s.modifiers, modDim)
 	return s
 }
+
+// WithItalic adds the italic modifier to the style.
 func (s *Style) WithItalic() *Style {
 	s.modifiers = append(s.modifiers, modItalic)
 	return s
 }
+
+// WithUnderline adds the underline modifier to the style.
 func (s *Style) WithUnderline() *Style {
 	s.modifiers = append(s.modifiers, modUnderline)
 	return s
 }
+
+// WithSlowBlink adds the slow blink modifier to the style. This is rarely
+// supported by terminals.
 func (s *Style) WithSlowBlink() *Style {
 	s.modifiers = append(s.modifiers, modSlowBlink)
 	return s
 }
+
+// WithRapidBlink adds the rapid blink modifier to the style. This is rarely
+// supported by terminals.
 func (s *Style) WithRapidBlink() *Style {
 	s.modifiers = append(s.modifiers, modRapidBlink)
 	return s
 }
-func (s *Style) WithReverse() *Style {
-	s.modifiers = append(s.modifiers, modReverse)
+
+// WithInverse adds the inverse modifier to the style, which swaps the foreground
+// and background colors.
+func (s *Style) WithInverse() *Style {
+	s.modifiers = append(s.modifiers, modInverse)
 	return s
 }
+
+// WithHidden adds the hidden modifier to the style, which hides the text.
 func (s *Style) WithHidden() *Style {
 	s.modifiers = append(s.modifiers, modHidden)
 	return s
 }
+
+// WithStrikeThrough adds the strike through modifier to the style, which adds a
+// line through the text.
 func (s *Style) WithStrikeThrough() *Style {
 	s.modifiers = append(s.modifiers, modStrikeThrough)
 	return s
 }
+
+// WithFraktur adds the fraktur modifier to the style, which changes the font to
+// a fraktur style. This is rarely supported by terminals.
 func (s *Style) WithFraktur() *Style {
 	s.modifiers = append(s.modifiers, modFraktur)
 	return s
 }
+
+// WithDoubleUnderline adds the double underline modifier to the style, which
+// adds two lines under the text. This is rarely supported by terminals.
 func (s *Style) WithDoubleUnderline() *Style {
 	s.modifiers = append(s.modifiers, modDoubleUnderline)
 	return s
 }
+
+// WithFramed adds the framed modifier to the style, which adds a frame around
+// the text. This is rarely supported by terminals.
 func (s *Style) WithFramed() *Style {
 	s.modifiers = append(s.modifiers, modFramed)
 	return s
 }
+
+// WithEncircled adds the encircled modifier to the style, which adds a circle
+// around the text. This is rarely supported by terminals.
 func (s *Style) WithEncircled() *Style {
 	s.modifiers = append(s.modifiers, modEncircled)
 	return s
 }
+
+// WithOverline adds the overline modifier to the style, which adds a line
+// above the text.
 func (s *Style) WithOverline() *Style {
 	s.modifiers = append(s.modifiers, modOverline)
 	return s
 }
-func (s *Style) WithForeground(color StyleColor) *Style {
-	s.foreground = &color
-	return s
-}
-func (s *Style) WithBackground(color StyleColor) *Style {
-	s.background = &color
+
+// WithColor sets the foreground color of the style. Be careful to use
+func (s *Style) WithColor(color StyleColor) *Style {
+	s.colors = append(s.colors, color)
 	return s
 }
 
 func (s *Style) Apply(text string) string {
-	codes := strings.Join(s.modifiers, ";")
-	if s.foreground != nil {
-		codes += ";" + s.foreground.Code()
+	if !enabled {
+		return text
 	}
-	if s.background != nil {
-		codes += ";" + s.background.Code()
+
+	if len(s.modifiers) == 0 && len(s.colors) == 0 {
+		return text
 	}
-	return "\x1b[" + codes + "m" + text + "\x1b[0m"
+
+	b := strings.Builder{}
+	b.WriteString("\x1b[")
+
+	size := 0
+	for _, mod := range s.modifiers {
+		if size > 0 {
+			b.WriteString(";")
+		}
+		size += 1
+		b.WriteString(mod)
+	}
+	for _, color := range s.colors {
+		if size > 0 {
+			b.WriteString(";")
+		}
+		size += 1
+		b.WriteString(color.Code())
+	}
+
+	b.WriteString("m")
+	b.WriteString(text)
+	b.WriteString("\x1b[0m")
+	return b.String()
 }
+
+var (
+	ColorBlack           = NewColorAnsi(30)
+	ColorRed             = NewColorAnsi(31)
+	ColorGreen           = NewColorAnsi(32)
+	ColorYellow          = NewColorAnsi(33)
+	ColorBlue            = NewColorAnsi(34)
+	ColorMagenta         = NewColorAnsi(35)
+	ColorCyan            = NewColorAnsi(36)
+	ColorWhite           = NewColorAnsi(37)
+	ColorDefault         = NewColorAnsi(39)
+	ColorBgBlack         = NewColorAnsi(40)
+	ColorBgRed           = NewColorAnsi(41)
+	ColorBgGreen         = NewColorAnsi(42)
+	ColorBgYellow        = NewColorAnsi(43)
+	ColorBgBlue          = NewColorAnsi(44)
+	ColorBgMagenta       = NewColorAnsi(45)
+	ColorBgCyan          = NewColorAnsi(46)
+	ColorBgWhite         = NewColorAnsi(47)
+	ColorBgDefault       = NewColorAnsi(49)
+	ColorBrightBlack     = NewColorAnsi(90)
+	ColorBrightRed       = NewColorAnsi(91)
+	ColorBrightGreen     = NewColorAnsi(92)
+	ColorBrightYellow    = NewColorAnsi(93)
+	ColorBrightBlue      = NewColorAnsi(94)
+	ColorBrightMagenta   = NewColorAnsi(95)
+	ColorBrightCyan      = NewColorAnsi(96)
+	ColorBrightWhite     = NewColorAnsi(97)
+	ColorBgBrightBlack   = NewColorAnsi(100)
+	ColorBgBrightRed     = NewColorAnsi(101)
+	ColorBgBrightGreen   = NewColorAnsi(102)
+	ColorBgBrightYellow  = NewColorAnsi(103)
+	ColorBgBrightBlue    = NewColorAnsi(104)
+	ColorBgBrightMagenta = NewColorAnsi(105)
+	ColorBgBrightCyan    = NewColorAnsi(106)
+	ColorBgBrightWhite   = NewColorAnsi(107)
+)
 
 var (
 	styleBold            = NewStyle().WithBold()
@@ -170,7 +312,7 @@ var (
 	styleUnderline       = NewStyle().WithUnderline()
 	styleSlowBlink       = NewStyle().WithSlowBlink()
 	styleRapidBlink      = NewStyle().WithRapidBlink()
-	styleReverse         = NewStyle().WithReverse()
+	styleReverse         = NewStyle().WithInverse()
 	styleHidden          = NewStyle().WithHidden()
 	styleStrikeThrough   = NewStyle().WithStrikeThrough()
 	styleFraktur         = NewStyle().WithFraktur()
@@ -178,40 +320,40 @@ var (
 	styleFramed          = NewStyle().WithFramed()
 	styleEncircled       = NewStyle().WithEncircled()
 	styleOverline        = NewStyle().WithOverline()
-	styleBlack           = NewStyle().WithForeground(NewColorAnsi(30))
-	styleRed             = NewStyle().WithForeground(NewColorAnsi(31))
-	styleGreen           = NewStyle().WithForeground(NewColorAnsi(32))
-	styleYellow          = NewStyle().WithForeground(NewColorAnsi(33))
-	styleBlue            = NewStyle().WithForeground(NewColorAnsi(34))
-	styleMagenta         = NewStyle().WithForeground(NewColorAnsi(35))
-	styleCyan            = NewStyle().WithForeground(NewColorAnsi(36))
-	styleWhite           = NewStyle().WithForeground(NewColorAnsi(37))
-	styleDefault         = NewStyle().WithForeground(NewColorAnsi(39))
-	styleBgBlack         = NewStyle().WithBackground(NewColorAnsi(40))
-	styleBgRed           = NewStyle().WithBackground(NewColorAnsi(41))
-	styleBgGreen         = NewStyle().WithBackground(NewColorAnsi(42))
-	styleBgYellow        = NewStyle().WithBackground(NewColorAnsi(43))
-	styleBgBlue          = NewStyle().WithBackground(NewColorAnsi(44))
-	styleBgMagenta       = NewStyle().WithBackground(NewColorAnsi(45))
-	styleBgCyan          = NewStyle().WithBackground(NewColorAnsi(46))
-	styleBgWhite         = NewStyle().WithBackground(NewColorAnsi(47))
-	styleBgDefault       = NewStyle().WithBackground(NewColorAnsi(49))
-	styleBrightBlack     = NewStyle().WithForeground(NewColorAnsi(90))
-	styleBrightRed       = NewStyle().WithForeground(NewColorAnsi(91))
-	styleBrightGreen     = NewStyle().WithForeground(NewColorAnsi(92))
-	styleBrightYellow    = NewStyle().WithForeground(NewColorAnsi(93))
-	styleBrightBlue      = NewStyle().WithForeground(NewColorAnsi(94))
-	styleBrightMagenta   = NewStyle().WithForeground(NewColorAnsi(95))
-	styleBrightCyan      = NewStyle().WithForeground(NewColorAnsi(96))
-	styleBrightWhite     = NewStyle().WithForeground(NewColorAnsi(97))
-	styleBgBrightBlack   = NewStyle().WithBackground(NewColorAnsi(100))
-	styleBgBrightRed     = NewStyle().WithBackground(NewColorAnsi(101))
-	styleBgBrightGreen   = NewStyle().WithBackground(NewColorAnsi(102))
-	styleBgBrightYellow  = NewStyle().WithBackground(NewColorAnsi(103))
-	styleBgBrightBlue    = NewStyle().WithBackground(NewColorAnsi(104))
-	styleBgBrightMagenta = NewStyle().WithBackground(NewColorAnsi(105))
-	styleBgBrightCyan    = NewStyle().WithBackground(NewColorAnsi(106))
-	styleBgBrightWhite   = NewStyle().WithBackground(NewColorAnsi(107))
+	styleBlack           = NewStyle().WithColor(ColorBlack)
+	styleRed             = NewStyle().WithColor(ColorRed)
+	styleGreen           = NewStyle().WithColor(ColorGreen)
+	styleYellow          = NewStyle().WithColor(ColorYellow)
+	styleBlue            = NewStyle().WithColor(ColorBlue)
+	styleMagenta         = NewStyle().WithColor(ColorMagenta)
+	styleCyan            = NewStyle().WithColor(ColorCyan)
+	styleWhite           = NewStyle().WithColor(ColorWhite)
+	styleDefault         = NewStyle().WithColor(ColorDefault)
+	styleBgBlack         = NewStyle().WithColor(ColorBgBlack)
+	styleBgRed           = NewStyle().WithColor(ColorBgRed)
+	styleBgGreen         = NewStyle().WithColor(ColorBgGreen)
+	styleBgYellow        = NewStyle().WithColor(ColorBgYellow)
+	styleBgBlue          = NewStyle().WithColor(ColorBgBlue)
+	styleBgMagenta       = NewStyle().WithColor(ColorBgMagenta)
+	styleBgCyan          = NewStyle().WithColor(ColorBgCyan)
+	styleBgWhite         = NewStyle().WithColor(ColorBgWhite)
+	styleBgDefault       = NewStyle().WithColor(ColorBgDefault)
+	styleBrightBlack     = NewStyle().WithColor(ColorBrightBlack)
+	styleBrightRed       = NewStyle().WithColor(ColorBrightRed)
+	styleBrightGreen     = NewStyle().WithColor(ColorBrightGreen)
+	styleBrightYellow    = NewStyle().WithColor(ColorBrightYellow)
+	styleBrightBlue      = NewStyle().WithColor(ColorBrightBlue)
+	styleBrightMagenta   = NewStyle().WithColor(ColorBrightMagenta)
+	styleBrightCyan      = NewStyle().WithColor(ColorBrightCyan)
+	styleBrightWhite     = NewStyle().WithColor(ColorBrightWhite)
+	styleBgBrightBlack   = NewStyle().WithColor(ColorBgBrightBlack)
+	styleBgBrightRed     = NewStyle().WithColor(ColorBgBrightRed)
+	styleBgBrightGreen   = NewStyle().WithColor(ColorBgBrightGreen)
+	styleBgBrightYellow  = NewStyle().WithColor(ColorBgBrightYellow)
+	styleBgBrightBlue    = NewStyle().WithColor(ColorBgBrightBlue)
+	styleBgBrightMagenta = NewStyle().WithColor(ColorBgBrightMagenta)
+	styleBgBrightCyan    = NewStyle().WithColor(ColorBgBrightCyan)
+	styleBgBrightWhite   = NewStyle().WithColor(ColorBgBrightWhite)
 )
 
 func Bold(s string) string            { return styleBold.Apply(s) }
@@ -262,3 +404,12 @@ func BgBrightBlue(s string) string    { return styleBgBrightBlue.Apply(s) }
 func BgBrightMagenta(s string) string { return styleBgBrightMagenta.Apply(s) }
 func BgBrightCyan(s string) string    { return styleBgBrightCyan.Apply(s) }
 func BgBrightWhite(s string) string   { return styleBgBrightWhite.Apply(s) }
+
+// Stylize applies multiple style application functions to a string. The styles
+// are applied in the order they are given.
+func Stylize(s string, v ...func(s string) string) string {
+	for _, fn := range v {
+		s = fn(s)
+	}
+	return s
+}
