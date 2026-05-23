@@ -282,7 +282,7 @@ func (t *Table) addRow(meta bool, section bool, values ...any) *TableRow {
 				t.lengths = append(t.lengths, 0)
 			}
 			for _, line := range IterLines(v) {
-				t.lengths[i] = max(t.lengths[i], VisualLength(line))
+				t.lengths[i] = max(t.lengths[i], Length(line))
 			}
 		}
 	}
@@ -319,7 +319,7 @@ func (t *Table) renderBorder(b *strings.Builder, i int) {
 
 	if basedRow.section {
 		length := t.getTotalLength()
-		dividers := VisualLength(mid) * max(1, t.cols)
+		dividers := Length(mid) * max(1, t.cols)
 		paddings := 2 * max(1, t.cols)
 		b.WriteString(Format("%s%s%s", left, strings.Repeat(h, length+dividers+paddings-1), right))
 	} else {
@@ -344,7 +344,7 @@ func (t *Table) renderRow(b *strings.Builder, i int) {
 
 	if row.section {
 		length := t.getTotalLength()
-		dividers := VisualLength(vi) * t.cols
+		dividers := Length(vi) * t.cols
 		paddings := 2 * t.cols
 		size := length + dividers + paddings - 3
 		value := WrapWord(row.values[0], size)
@@ -451,7 +451,7 @@ func (t *Table) getTotalLength() int {
 		for _, row := range t.rows {
 			for _, value := range row.values {
 				for _, line := range IterLines(value) {
-					length = max(VisualLength(line), length)
+					length = max(Length(line), length)
 				}
 			}
 		}
