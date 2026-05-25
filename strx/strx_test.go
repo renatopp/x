@@ -120,6 +120,13 @@ func TestIsBlank(t *testing.T) {
 	testx.False(t, strx.IsBlank("Hello"))
 }
 
+func TestTruncate(t *testing.T) {
+	testx.Equal(t, "Hello", strx.Truncate("Hello", 10))
+	testx.Equal(t, "Hello", strx.Truncate("Hello", 5))
+	testx.Equal(t, "Hell", strx.Truncate("Hello", 4))
+	testx.Equal(t, "Hel", strx.Truncate("Hello", 3))
+}
+
 func TestEllipsis(t *testing.T) {
 	testx.Equal(t, "🌱⚡🧹🥸👍", strx.Ellipsis("🌱⚡🧹🥸👍", 10))
 	testx.Equal(t, "🌱⚡🧹🥸👍", strx.Ellipsis("🌱⚡🧹🥸👍", 5))
@@ -158,4 +165,9 @@ func TestIterRunes(t *testing.T) {
 
 func TestFormat(t *testing.T) {
 	testx.Equal(t, "formated 010", strx.Format("formated %03d", 10))
+}
+
+func TestReverse(t *testing.T) {
+	testx.Equal(t, "olleH", strx.Reverse("Hello"))
+	testx.Equal(t, "🌱⚡🧹🥸👍", strx.Reverse("👍🥸🧹⚡🌱"))
 }

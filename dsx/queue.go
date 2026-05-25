@@ -25,13 +25,13 @@ func NewQueueFrom[T comparable](items []T) *Queue[T] {
 
 // Push adds one or more items to the end of the queue.
 func (q *Queue[T]) Push(items ...T) {
-	q.items = append(items, q.items...)
+	q.items = append(q.items, items...)
 }
 
 // PushSlice adds multiple items to the end of the queue from a slice. The items
 // are added in the order they appear in the slice.
 func (q *Queue[T]) PushSlice(items []T) {
-	q.items = append(items, q.items...)
+	q.items = append(q.items, items...)
 }
 
 // Get returns the item at the specified index in the queue. The index is resolved

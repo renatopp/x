@@ -42,8 +42,8 @@ func (w *responseWriter) WriteJsonIndent(v any, prefix, indent string) (int, err
 	}
 	return w.ResponseWriter.Write(bytes)
 }
-func (w *responseWriter) Redirect(url string, code int) {
-	http.Redirect(w.ResponseWriter, nil, url, code)
+func (w *responseWriter) Redirect(r *http.Request, url string, code int) {
+	http.Redirect(w.ResponseWriter, r, url, code)
 }
 
 type ResponseWriter interface {
@@ -55,7 +55,7 @@ type ResponseWriter interface {
 	WriteString(s string) (int, error)
 	WriteJson(v any) (int, error)
 	WriteJsonIndent(v any, prefix, indent string) (int, error)
-	Redirect(url string, code int)
+	Redirect(r *http.Request, url string, code int)
 }
 
 func HandleFunc(pattern string, handler func(w ResponseWriter, r *http.Request)) {

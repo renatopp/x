@@ -40,14 +40,14 @@ func PrependSlice[T any](s []T, v []T) []T {
 // It accepts python-like negative indeces.
 func Insert[T any](s []T, i int, v ...T) []T {
 	i = resolveIndex(i, len(s))
-	return append(append(s[:i], v...), s[i:]...)
+	return slices.Insert(s, i, v...)
 }
 
 // InsertSlice inserts the given slice at the specified index in the slice and returns the resulting slice.
 // It accepts python-like negative indeces.
 func InsertSlice[T any](s []T, i int, v []T) []T {
 	i = resolveIndex(i, len(s))
-	return append(append(s[:i], v...), s[i:]...)
+	return slices.Insert(s, i, v...)
 }
 
 // Remove removes the element at the specified index from the slice and returns the resulting slice.
@@ -91,11 +91,13 @@ func RemoveValue[T comparable](s []T, v T) []T {
 	return result
 }
 
-// Assign appends the given slices to the destination slice. It is useful for variadic functions that accept multiple slices as arguments.
-func Assign[T any](dst []T, src ...[]T) {
+// Assign appends the given slices to the destination slice. It is useful
+// for variadic functions that accept multiple slices as arguments.
+func Assign[T any](dst []T, src ...[]T) []T {
 	for _, s := range src {
 		dst = append(dst, s...)
 	}
+	return dst
 }
 
 // Clip removes unused capacity from the slice, returning s[:len(s):len(s)].

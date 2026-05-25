@@ -1,23 +1,15 @@
 package iterx
 
-import "github.com/renatopp/x/randx"
+import (
+	"iter"
 
-// Seq is an iterator over sequences of individual values.
-// When called as seq(yield), seq calls yield(v) for each value v in the sequence,
-// stopping early if yield returns false.
-// See the [iter] package documentation for more details.
-type Seq[V any] func(yield func(V) bool)
-
-// Seq2 is an iterator over sequences of pairs of values, most commonly key-value pairs.
-// When called as seq(yield), seq calls yield(k, v) for each pair (k, v) in the sequence,
-// stopping early if yield returns false.
-// See the [iter] package documentation for more details.
-type Seq2[K, V any] func(yield func(K, V) bool)
+	"github.com/renatopp/x/randx"
+)
 
 // Window returns a Seq that yields consecutive windows of the specified size from the input sequence.
 // For example, Window([]int{1, 2, 3, 4}, 2) would yield []int{1, 2}, then []int{2, 3}, and finally []int{3, 4}.
 // If the size is greater than the length of the input sequence, no windows will be yielded.
-func Window[V any](seq []V, size int) Seq[[]V] {
+func Window[V any](seq []V, size int) iter.Seq[[]V] {
 	if size <= 0 {
 		panic("size must be greater than 0")
 	}
@@ -40,7 +32,7 @@ func Window[V any](seq []V, size int) Seq[[]V] {
 // WindowString returns a Seq that yields consecutive windows of the specified size from the input string.
 // For example, WindowString("abcd", 2) would yield "ab", then "bc", and finally "cd".
 // If the size is greater than the length of the input string, no windows will be yielded.
-func WindowString(seq string, size int) Seq[string] {
+func WindowString(seq string, size int) iter.Seq[string] {
 	if size <= 0 {
 		panic("size must be greater than 0")
 	}
@@ -61,7 +53,7 @@ func WindowString(seq string, size int) Seq[string] {
 }
 
 // Shuffle returns a Seq that yields the elements of the input sequence in random order. Each element is yielded exactly once.
-func Shuffle[V any](seq []V) Seq[V] {
+func Shuffle[V any](seq []V) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		perm := make([]int, len(seq))
 		for i := range perm {
@@ -78,7 +70,7 @@ func Shuffle[V any](seq []V) Seq[V] {
 
 // RangeInt returns a Seq that yields integers from start (inclusive) to end (exclusive).
 // For example, RangeInt(0, 5) would yield 0, 1, 2, 3, and 4.
-func RangeInt(start, end int) Seq[int] {
+func RangeInt(start, end int) iter.Seq[int] {
 	return func(yield func(int) bool) {
 		for i := start; i < end; i++ {
 			if !yield(i) {
@@ -90,7 +82,7 @@ func RangeInt(start, end int) Seq[int] {
 
 // RangeIntStep returns a Seq that yields integers from start (inclusive) to end (exclusive) with a specified step.
 // For example, RangeIntStep(0, 10, 2) would yield 0, 2, 4, 6, and 8. If step is negative, it will yield in reverse order (e.g., RangeIntStep(10, 0, -2) would yield 10, 8, 6, 4, and 2).
-func RangeIntStep(start, end, step int) Seq[int] {
+func RangeIntStep(start, end, step int) iter.Seq[int] {
 	if step == 0 {
 		panic("step must be non-zero")
 	}
@@ -114,7 +106,7 @@ func RangeIntStep(start, end, step int) Seq[int] {
 // RangeFloat returns a Seq that yields float64 values from start (inclusive) to end (exclusive).
 // For example, RangeFloat(0.0, 1.0) would yield values starting from 0.0 up to but not
 // including 1.0, with a default step of 1.0 (i.e., it would yield 0.0 only). To specify a different step, use RangeFloatStep.
-func RangeFloat(start, end float64) Seq[float64] {
+func RangeFloat(start, end float64) iter.Seq[float64] {
 	return func(yield func(float64) bool) {
 		for i := start; i < end; i++ {
 			if !yield(i) {
@@ -128,7 +120,7 @@ func RangeFloat(start, end float64) Seq[float64] {
 // For example, RangeFloatStep(0.0, 1.0, 0.2) would yield 0.0, 0.2, 0.4, 0.6, and 0.8.
 // If step is negative, it will yield in reverse order (e.g., RangeFloatStep(1.0, 0.0, -0.2)
 // would yield 1.0, 0.8, 0.6, 0.4, and 0.2).
-func RangeFloatStep(start, end, step float64) Seq[float64] {
+func RangeFloatStep(start, end, step float64) iter.Seq[float64] {
 	if step == 0 {
 		panic("step must be non-zero")
 	}
@@ -150,7 +142,7 @@ func RangeFloatStep(start, end, step float64) Seq[float64] {
 }
 
 // Repeat returns a Seq that yields the specified value indefinitely.
-func Repeat[T any](value T) Seq[T] {
+func Repeat[T any](value T) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for {
 			if !yield(value) {
@@ -162,7 +154,7 @@ func Repeat[T any](value T) Seq[T] {
 
 // RepeatN returns a Seq that yields the specified value n times. If n is less
 // than or equal to 0, it will yield nothing.
-func RepeatN[T any](value T, n int) Seq[T] {
+func RepeatN[T any](value T, n int) iter.Seq[T] {
 	if n <= 0 {
 		return func(yield func(T) bool) {}
 	}
@@ -178,7 +170,7 @@ func RepeatN[T any](value T, n int) Seq[T] {
 // RepeatWhile returns a Seq that yields the specified value repeatedly as long as
 // the keep function returns true. The keep function is called before each yield,
 // and if it returns false, the sequence will stop yielding values.
-func RepeatWhile[T any](value T, keep func() bool) Seq[T] {
+func RepeatWhile[T any](value T, keep func() bool) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for keep() {
 			if !yield(value) {
@@ -191,7 +183,7 @@ func RepeatWhile[T any](value T, keep func() bool) Seq[T] {
 // RepeatUntil returns a Seq that yields the specified value repeatedly until
 // the stop function returns true. The stop function is called before each
 // yield, and if it returns true, the sequence will stop yielding values.
-func RepeatUntil[T any](value T, stop func() bool) Seq[T] {
+func RepeatUntil[T any](value T, stop func() bool) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for {
 			if stop() {
@@ -207,7 +199,7 @@ func RepeatUntil[T any](value T, stop func() bool) Seq[T] {
 // Cycle returns a Seq that yields the elements of the input sequence in order,
 // repeating indefinitely. For example, Cycle([]int{1, 2, 3}) would yield 1,
 // then 2, then 3, then 1 again, and so on.
-func Cycle[T any](seq []T) Seq[T] {
+func Cycle[T any](seq []T) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for { // infinite loop
 			for _, v := range seq {
@@ -223,7 +215,7 @@ func Cycle[T any](seq []T) Seq[T] {
 // repeating n times. For example, CycleN([]int{1, 2, 3}, 2) would yield 1, then 2,
 // then 3, then 1 again, then 2 again, and finally 3 again. If n is less than or
 // equal to 0, it will yield nothing.
-func CycleN[T any](seq []T, n int) Seq[T] {
+func CycleN[T any](seq []T, n int) iter.Seq[T] {
 	if n <= 0 {
 		return func(yield func(T) bool) {}
 	}
@@ -241,7 +233,7 @@ func CycleN[T any](seq []T, n int) Seq[T] {
 // CycleWhile returns a Seq that yields the elements of the input sequence in order,
 // repeating as long as the keep function returns true. The keep function is called
 // before each cycle, and if it returns false, the sequence will stop yielding values.
-func CycleWhile[T any](seq []T, keep func() bool) Seq[T] {
+func CycleWhile[T any](seq []T, keep func() bool) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for keep() {
 			for _, v := range seq {
@@ -256,7 +248,7 @@ func CycleWhile[T any](seq []T, keep func() bool) Seq[T] {
 // CycleUntil returns a Seq that yields the elements of the input sequence in order,
 // repeating until the stop function returns true. The stop function is called before
 // each cycle, and if it returns true, the sequence will stop yielding values.
-func CycleUntil[T any](seq []T, stop func() bool) Seq[T] {
+func CycleUntil[T any](seq []T, stop func() bool) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for {
 			if stop() {
@@ -274,7 +266,7 @@ func CycleUntil[T any](seq []T, stop func() bool) Seq[T] {
 // Take returns a Seq that yields the first n elements of the input sequence.
 // If n is less than or equal to 0, it will yield nothing. If n is greater than
 // the length of the input sequence, it will yield all elements of the input sequence.
-func Take[T any](seq []T, n int) Seq[T] {
+func Take[T any](seq []T, n int) iter.Seq[T] {
 	if n <= 0 {
 		return func(yield func(T) bool) {}
 	}
@@ -292,7 +284,7 @@ func Take[T any](seq []T, n int) Seq[T] {
 
 // TakeWhile returns a Seq that yields elements from the input sequence as long
 // as the keep function returns true.
-func TakeWhile[T any](seq []T, keep func(T) bool) Seq[T] {
+func TakeWhile[T any](seq []T, keep func(T) bool) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, v := range seq {
 			if !keep(v) {
@@ -307,7 +299,7 @@ func TakeWhile[T any](seq []T, keep func(T) bool) Seq[T] {
 
 // TakeUntil returns a Seq that yields elements from the input sequence until
 // the stop function returns true.
-func TakeUntil[T any](seq []T, stop func(T) bool) Seq[T] {
+func TakeUntil[T any](seq []T, stop func(T) bool) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for _, v := range seq {
 			if stop(v) {
@@ -324,7 +316,7 @@ func TakeUntil[T any](seq []T, stop func(T) bool) Seq[T] {
 // and b. The first element of each pair is taken from a, and the second element
 // is taken from b. The sequence will yield pairs until one of the input slices
 // is exhausted (i.e., it will yield min(len(a), len(b)) pairs).
-func Zip[T, Q any](a []T, b []Q) Seq2[T, Q] {
+func Zip[T, Q any](a []T, b []Q) iter.Seq2[T, Q] {
 	return func(yield func(T, Q) bool) {
 		minLen := len(a)
 		if len(b) < minLen {

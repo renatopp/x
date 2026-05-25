@@ -186,6 +186,20 @@ func IsBlank(s string) bool {
 	return true
 }
 
+// Truncate returns a string that is at most maxLen characters long. If the
+// input string is longer than maxLen, it will be truncated.
+func Truncate(s string, maxLen int) string {
+	if maxLen <= 0 {
+		return ""
+	}
+
+	runes := []rune(s)
+	if len(runes) <= maxLen {
+		return s
+	}
+	return string(runes[:maxLen])
+}
+
 // Ellipsis guarantees that the returned string will not be longer than maxLen,
 // adding "..." at the end if the string is truncated. Notice that the ellipsis
 // counts towards the maxLen. Also notice that if the maxLen is less than or
@@ -360,4 +374,16 @@ func WrapHyphenWith(s string, maxLen int, sep string) string {
 		goto reset
 	}
 	return b.String()
+}
+
+// Reverse returns a new string which is the reverse of the input string. It
+// handles Unicode characters correctly, so it will reverse the string as expected.
+// For example, Reverse("hello") would return "olleh", and Reverse("你好") would
+// return "好你".
+func Reverse(s string) string {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
 }

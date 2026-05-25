@@ -89,7 +89,7 @@ func (c *MarkovChain) GenerateFrom(n int, from string) string {
 	result.WriteString(from)
 	next := from
 	for range n {
-		next := c.Next(next)
+		next = c.Next(next)
 		if next == "" {
 			break
 		}

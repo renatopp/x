@@ -16,10 +16,10 @@ func ManhattanDistance[T SignedNumber](x1, y1, x2, y2 T) T {
 	return dx + dy
 }
 
-// MahallanobisDistance calculates the distance between a point x and the mean mu
+// MahalanobisDistance calculates the distance between a point x and the mean mu
 // of a distribution with standard deviation sigma. It accounts for the scale of
 // the data and is useful for measuring distances in multivariate space.
-func MahallanobisDistance[T Number](x T, mu, sigma T) float64 {
+func MahalanobisDistance[T Number](x T, mu, sigma T) float64 {
 	return Sqrt(float64((x - mu) * (x - mu) / (sigma * sigma)))
 }
 

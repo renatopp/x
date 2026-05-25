@@ -20,9 +20,9 @@ func TestManhattanDistance(t *testing.T) {
 }
 
 func TestMahallanobisDistance(t *testing.T) {
-	testx.AlmostEqual(t, 2.0, mathx.MahallanobisDistance(5, 3, 1), 0.0001)
-	testx.AlmostEqual(t, 0.0, mathx.MahallanobisDistance(1, 1, 1), 0.0001)
-	testx.AlmostEqual(t, 4.0, mathx.MahallanobisDistance(10, 6, 1), 0.0001)
+	testx.AlmostEqual(t, 2.0, mathx.MahalanobisDistance(5, 3, 1), 0.0001)
+	testx.AlmostEqual(t, 0.0, mathx.MahalanobisDistance(1, 1, 1), 0.0001)
+	testx.AlmostEqual(t, 4.0, mathx.MahalanobisDistance(10, 6, 1), 0.0001)
 }
 
 func TestChebyshevDistance(t *testing.T) {

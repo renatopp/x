@@ -24,14 +24,14 @@ func NewStackFrom[T comparable](items []T) *Stack[T] {
 }
 
 // Push adds one or more items to the top of the stack.
-func (s *Stack[T]) Push(item ...T) {
-	s.items = append(item, s.items...)
+func (s *Stack[T]) Push(items ...T) {
+	s.items = append(s.items, items...)
 }
 
 // PushSlice adds multiple items to the top of the stack from a slice. The items
 // are added in the order they appear in the slice.
 func (s *Stack[T]) PushSlice(items []T) {
-	s.items = append(items, s.items...)
+	s.items = append(s.items, items...)
 }
 
 // Get returns the item at the specified index in the stack. The index is resolved
@@ -39,7 +39,7 @@ func (s *Stack[T]) PushSlice(items []T) {
 func (s *Stack[T]) Get(i int) T {
 	i = resolveIndex(i, len(s.items))
 	if i < 0 || i >= len(s.items) {
-		panic("queue index out of range")
+		panic("stack index out of range")
 	}
 	return s.items[i]
 }

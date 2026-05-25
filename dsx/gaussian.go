@@ -96,13 +96,13 @@ func (g *Gaussian) KLDivergence(other *Gaussian) float64 {
 	return math.Log(other.Sigma/g.Sigma) + (variance+(g.Mu-other.Mu)*(g.Mu-other.Mu))/(2*otherVariance) - 0.5
 }
 
-// MahallanobisDistance computes the Mahalanobis distance from a point x to the mean of the Gaussian distribution.
-func (g *Gaussian) MahallanobisDistance(x float64) float64 {
+// MahalanobisDistance computes the Mahalanobis distance from a point x to the mean of the Gaussian distribution.
+func (g *Gaussian) MahalanobisDistance(x float64) float64 {
 	return math.Sqrt((x - g.Mu) * (x - g.Mu) / (g.Sigma * g.Sigma))
 }
 
-// BattacharyyaDistance computes the Bhattacharyya distance between this Gaussian distribution and another Gaussian distribution.
-func (g *Gaussian) BattacharyyaDistance(other *Gaussian) float64 {
+// BhattacharyyaDistance computes the Bhattacharyya distance between this Gaussian distribution and another Gaussian distribution.
+func (g *Gaussian) BhattacharyyaDistance(other *Gaussian) float64 {
 	meanDiff := g.Mu - other.Mu
 	varianceSum := g.Sigma*g.Sigma + other.Sigma*other.Sigma
 	return 0.25*meanDiff*meanDiff/varianceSum + 0.5*math.Log(varianceSum/(2*g.Sigma*g.Sigma*other.Sigma*other.Sigma))

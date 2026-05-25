@@ -27,7 +27,7 @@ type Response struct {
 
 // newResponse creates a new Response object from the given http.Request,
 // http.Response, and error. Internal use only.
-func newReponse(req *http.Request, resp *http.Response, err error) *Response {
+func newResponse(req *http.Request, resp *http.Response, err error) *Response {
 	if err != nil {
 		return &Response{err: err, body: []byte{}}
 	}

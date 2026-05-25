@@ -59,7 +59,7 @@ func FetchWithBody(method, url string, body []byte, opts ...RequestOption) *Resp
 	client := &http.Client{Timeout: options.Timeout}
 	req, err := http.NewRequest(method, url, bytes.NewReader(body))
 	if err != nil {
-		return newReponse(req, nil, err)
+		return newResponse(req, nil, err)
 	}
 
 	for k, v := range options.Headers {
@@ -67,7 +67,7 @@ func FetchWithBody(method, url string, body []byte, opts ...RequestOption) *Resp
 	}
 
 	response, err := client.Do(req)
-	return newReponse(req, response, err)
+	return newResponse(req, response, err)
 }
 
 // Get is a shortcut for performing a GET using Fetch.
