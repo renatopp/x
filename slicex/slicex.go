@@ -277,3 +277,35 @@ func IterBackward[T any](s []T) iter.Seq2[int, T] {
 func IterValues[T any](s []T) iter.Seq[T] {
 	return slices.Values(s)
 }
+
+// Map applies the function f to each element of the slice,
+// and returns a new slice with the results.
+func Map[T any, U any](s []T, f func(T) U) []U {
+	result := make([]U, len(s))
+	for i, v := range s {
+		result[i] = f(v)
+	}
+	return result
+}
+
+// Filter applies the function f to each element of the slice,
+// and returns a new slice with the elements for which f returns true.
+func Filter[T any](s []T, f func(T) bool) []T {
+	result := make([]T, 0, len(s))
+	for _, v := range s {
+		if f(v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// Reduce applies the function f to each element of the slice,
+// and returns the accumulated result.
+func Reduce[T any, U any](s []T, f func(U, T) U, initial U) U {
+	result := initial
+	for _, v := range s {
+		result = f(result, v)
+	}
+	return result
+}
