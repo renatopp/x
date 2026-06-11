@@ -16,6 +16,11 @@ func resolveIndex(i, len int) int {
 	return i
 }
 
+// New returns a new slice with the given elements.
+func New[T any](elements ...T) []T {
+	return elements
+}
+
 // Append appends the given values to the end of the slice and returns the resulting slice.
 func Append[T any](s []T, v ...T) []T {
 	return append(s, v...)
