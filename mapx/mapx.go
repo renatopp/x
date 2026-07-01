@@ -159,3 +159,24 @@ func IterKeys[K comparable, V any](m map[K]V) iter.Seq[K] { return maps.Keys(m) 
 
 // IterValues returns a sequence of values in the map.
 func IterValues[K comparable, V any](m map[K]V) iter.Seq[V] { return maps.Values(m) }
+
+// ForEach calls the given function for each key-value pair in the map.
+func ForEach[K comparable, V any](m map[K]V, fn func(K, V)) {
+	for k, v := range m {
+		fn(k, v)
+	}
+}
+
+// ForEachKey calls the given function for each key in the map.
+func ForEachValue[K comparable, V any](m map[K]V, fn func(V)) {
+	for _, v := range m {
+		fn(v)
+	}
+}
+
+// ForEachKey calls the given function for each key in the map.
+func ForEachKey[K comparable, V any](m map[K]V, fn func(K)) {
+	for k := range m {
+		fn(k)
+	}
+}

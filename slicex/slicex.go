@@ -314,3 +314,17 @@ func Reduce[T any, U any](s []T, f func(U, T) U, initial U) U {
 	}
 	return result
 }
+
+// ForEach applies the function f to each element of the slice.
+func ForEach[T any](s []T, f func(T)) {
+	for _, v := range s {
+		f(v)
+	}
+}
+
+// ForEachIndex applies the function f to each index-value pair of the slice.
+func ForEachIndex[T any](s []T, f func(int, T)) {
+	for i, v := range s {
+		f(i, v)
+	}
+}
