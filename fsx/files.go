@@ -74,6 +74,21 @@ func hashFile(p string, h hash.Hash) (string, error) {
 // PUBLIC
 // ----------------------------------------------------------------------------
 
+// OpenFile opens the file at the specified path for reading. It returns a file
+// handle and an error. If the file does not exist or is not accessible, it
+// returns an error.
+func OpenFile(p string) (*os.File, error) {
+	return os.Open(p)
+}
+
+// ForceOpenFile opens the file at the specified path for reading and returns
+// the file handle. If the file does not exist or is not accessible, it returns
+// nil.
+func ForceOpenFile(p string) *os.File {
+	f, _ := OpenFile(p)
+	return f
+}
+
 // IsFile checks if the given p is a file. If the p does not exist or is
 // a directory, it returns false.
 func IsFile(p string) bool {

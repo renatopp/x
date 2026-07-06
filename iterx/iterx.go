@@ -329,3 +329,16 @@ func Zip[T, Q any](a []T, b []Q) iter.Seq2[T, Q] {
 		}
 	}
 }
+
+// Enumerate returns a Seq2 that yields pairs of index and element from the input slice seq.
+// The first element of each pair is the index of the element in seq, and the second element is the value of the element.
+// For example, Enumerate([]string{"a", "b", "c"}) would yield (0, "a"), then (1, "b"), and finally (2, "c").
+func Enumerate[T any](seq []T) iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		for i, v := range seq {
+			if !yield(i, v) {
+				return
+			}
+		}
+	}
+}
