@@ -171,3 +171,8 @@ func TestReverse(t *testing.T) {
 	testx.Equal(t, "olleH", strx.Reverse("Hello"))
 	testx.Equal(t, "🌱⚡🧹🥸👍", strx.Reverse("👍🥸🧹⚡🌱"))
 }
+
+func TestToPrintableAscii(t *testing.T) {
+	testx.Equal(t, "HelloWorld", strx.ToPrintableAscii("Hello\nWorld"))
+	testx.Equal(t, "", strx.ToPrintableAscii("你好"))
+}

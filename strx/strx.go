@@ -387,3 +387,18 @@ func Reverse(s string) string {
 	}
 	return string(runes)
 }
+
+// ToPrintableAscii returns a new string containing only the printable ASCII
+// characters from the input string. It removes any non-printable or non-ASCII
+// characters. For example, ToPrintableAscii("hello\nworld") would return
+// "helloworld", and ToPrintableAscii("你好") would return an empty string.
+func ToPrintableAscii(s string) string {
+	b := make([]byte, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= 0x20 && c <= 0x7E {
+			b = append(b, c)
+		}
+	}
+	return string(b)
+}
