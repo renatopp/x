@@ -2,6 +2,8 @@
 
 **strx**
 
+**iterx**
+
 **fmtx**
 
 - Adding a Repr(any).
@@ -18,4 +20,6 @@
 
 - Str convs and parsers (ToString(), ToInt, ToFloat, ...)
 
-**iterx**
+**envx**
+
+- Environment variable loading as object
